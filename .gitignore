@@ -1,0 +1,25 @@
+# Virtual environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Runtime logs and snapshots
+runs/
+
+# Model weights cache
+models/
+*.pt
+*.onnx
+
+# Local IDE / planner artifacts
+.vscode/
+.idea/
+artifacts/
+user_uploaded_files/
+
+# OS files
+.DS_Store
+Thumbs.db

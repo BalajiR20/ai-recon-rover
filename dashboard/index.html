@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Recon Rover v5.6 — Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #060b13;
+      --bg-surface: #0a1220;
+      --bg-card: #0d1728;
+      --bg-card-hover: #121f36;
+      --border-subtle: #17263c;
+      --border-focus: #2563eb;
+      --text-main: #f8fafc;
+      --text-muted: #8ea1bf;
+      --accent-cyan: #38bdf8;
+      --accent-blue: #2563eb;
+      --accent-green: #10b981;
+      --accent-emerald: #059669;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-rose: #e11d48;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* TOP HEADER NAVBAR */
+    header.top-nav {
+      height: 64px;
+      background: rgba(10, 18, 32, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-cyan);
+    }
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+    .badge-ver {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .brand-text p {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* STATUS PILLS IN NAVBAR */
+    .nav-status-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-pill {
+      background: #0d1829;
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.78rem;
+    }
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+    .pill-content {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .pill-title {
+      font-weight: 700;
+      color: #f1f5f9;
+      font-size: 0.75rem;
+    }
+    .pill-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* TOP CONTROLS & E-STOP */
+    .nav-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .switch-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #0d1829;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .switch-control input { display: none; }
+    .switch-track {
+      width: 32px;
+      height: 18px;
+      background: #1e293b;
+      border-radius: 999px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .switch-thumb {
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+    .switch-control input:checked + .switch-track {
+      background: #2563eb;
+    }
+    .switch-control input:checked + .switch-track .switch-thumb {
+      transform: translateX(14px);
+    }
+
+    .btn-estop-top {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      border: 1px solid #f87171;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+      transition: all 0.15s;
+    }
+    .btn-estop-top:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
+    }
+
+    /* MAIN APP LAYOUT (SIDEBAR + CONTENT) */
+    .app-body {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* LEFT SIDEBAR */
+    aside.sidebar {
+      width: 220px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 12px;
+      flex-shrink: 0;
+    }
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .nav-item.active {
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+    }
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .sidebar-footer-card {
+      background: #0d1728;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .system-online-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 10px;
+    }
+    .system-kv-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      margin-bottom: 5px;
+    }
+    .system-kv-row .kv-key { color: var(--text-muted); }
+    .system-kv-row .kv-val { font-weight: 700; color: #f8fafc; }
+
+    /* MAIN VIEWPORT */
+    main.viewport {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* TOP STATUS / NOTIFICATION BANNER */
+    .mission-status-banner {
+      background: #0c1626;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .check-circle-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-green);
+      font-size: 15px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .banner-text-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--accent-green);
+    }
+    .banner-text-sub {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      margin-top: 1px;
+    }
+    .banner-right-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .banner-right-meta strong { color: #f8fafc; }
+    .btn-report {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-report:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* REAL-TIME EMERGENCY POP-UP BANNER (When target found) */
+    #alertBanner {
+      display: none;
+      background: linear-gradient(90deg, rgba(225, 29, 72, 0.95), rgba(15, 23, 42, 0.95));
+      border: 2px solid #fb7185;
+      border-radius: 12px;
+      padding: 12px 18px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: alertPulse 1.8s infinite alternate;
+    }
+    @keyframes alertPulse {
+      from { box-shadow: 0 0 10px rgba(225, 29, 72, 0.35); }
+      to { box-shadow: 0 0 25px rgba(225, 29, 72, 0.8); }
+    }
+    .alert-headline { font-weight: 800; font-size: 0.98rem; color: #fff; }
+    .alert-route { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #fef08a; margin-top: 2px; }
+
+    /* MIDDLE 3-COLUMN TACTICAL GRID */
+    .tactical-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1.35fr 1.15fr;
+      gap: 14px;
+    }
+    @media (max-width: 1280px) {
+      .tactical-grid { grid-template-columns: 1fr; }
+    }
+
+    .card-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-fps {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #0a1322;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    /* COLUMN 1: LIVE VIDEO STREAM & BUTTONS */
+    .video-viewport {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #020612;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-hud-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 7px 10px;
+      background: rgba(7, 13, 24, 0.85);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-cyan);
+      display: flex;
+      justify-content: space-between;
+      z-index: 5;
+    }
+    .video-corner-bracket {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      pointer-events: none;
+    }
+    .bracket-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+    .bracket-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+    .bracket-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+    .bracket-br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+    .action-btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-row-split {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 8px;
+    }
+    .btn-action {
+      background: #111d31;
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.15s;
+    }
+    .btn-action:hover {
+      background: #162640;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .btn-action.btn-start {
+      background: #059669;
+      border-color: #10b981;
+      color: #fff;
+      font-weight: 800;
+    }
+    .btn-action.btn-start:hover {
+      background: #047857;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+    }
+    .btn-trio-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    /* COLUMN 2: ARENA CANVAS & CHECKBOXES */
+    .map-controls-header {
+      display: flex;
+      gap: 12px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .map-controls-header label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    canvas#arenaCanvas {
+      width: 100%;
+      height: 310px;
+      background: #030712;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      display: block;
+    }
+    .map-legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      align-items: center;
+      padding-top: 4px;
+    }
+    .legend-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .swatch-box {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* COLUMN 3: TELEMETRY & CIRCULAR GAUGES */
+    .gauges-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .gauge-card {
+      background: #08111e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ring-wrapper {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      flex-shrink: 0;
+    }
+    .ring-wrapper svg {
+      transform: rotate(-90deg);
+      width: 58px;
+      height: 58px;
+    }
+    .ring-bg {
+      fill: none;
+      stroke: #17263c;
+      stroke-width: 5;
+    }
+    .ring-progress {
+      fill: none;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 157;
+      stroke-dashoffset: 157;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    .ring-label-pct {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .gauge-info-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.25;
+    }
+    .gauge-info-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stat-blocks-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stat-mini-card {
+      background: #08111e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stat-mini-card svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent-cyan);
+      flex-shrink: 0;
+    }
+    .stat-mini-title {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .stat-mini-val {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ENTROPY BAR CARD */
+    .entropy-card {
+      background: #08111e;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .entropy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .entropy-progress-track {
+      width: 100%;
+      height: 7px;
+      background: #17263c;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .entropy-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      border-radius: 999px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      transition: width 0.4s ease;
+    }
+
+    /* MANUAL CONTROLS & LOG SUB-PANELS */
+    .controls-log-split {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .jog-header {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .jog-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .btn-jog {
+      background: #111d31;
+      border: 1px solid var(--border-subtle);
+      color: #e2e8f0;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 7px 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-jog:hover { background: #162640; border-color: var(--accent-cyan); }
+    .btn-jog-stop {
+      width: 100%;
+      background: #dc2626;
+      border: 1px solid #ef4444;
+      color: #fff;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 7px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .log-box {
+      background: #040811;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px;
+      height: 135px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      line-height: 1.45;
+    }
+    .log-line {
+      margin-bottom: 4px;
+      color: #cbd5e1;
+    }
+    .log-line .log-time { color: var(--text-muted); }
+    .log-line .log-tag { font-weight: 700; color: var(--accent-cyan); }
+    .log-line .log-tag-alert { font-weight: 700; color: #34d399; }
+
+    /* BOTTOM FULL-WIDTH SURVIVOR DATABASE */
+    .database-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .db-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .db-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    /* TOUR DISPATCH BANNER */
+    .tour-dispatch-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+    }
+    .tour-pulse-icon {
+      color: #34d399;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .tour-title {
+      font-weight: 800;
+      color: #34d399;
+    }
+    .tour-path-string {
+      font-family: 'JetBrains Mono', monospace;
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    /* DATA TABLE */
+    table.survivor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+    table.survivor-table th {
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    table.survivor-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(23, 38, 60, 0.6);
+      color: #f1f5f9;
+      vertical-align: middle;
+    }
+    .pill-priority {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.72rem;
+      display: inline-block;
+      letter-spacing: 0.02em;
+    }
+    .p1-badge { background: #dc2626; color: #fff; }
+    .p2-badge { background: #d97706; color: #fff; }
+    .p3-badge { background: #059669; color: #fff; }
+
+    .route-bubble {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #6ee7b7;
+      display: inline-block;
+    }
+    .btn-view-snap {
+      background: #111d31;
+      border: 1px solid var(--border-subtle);
+      color: #38bdf8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-view-snap:hover { background: #162640; border-color: var(--accent-cyan); }
+
+    /* TAB CONTENT WRAPPERS */
+    .tab-content-panel { display: none; }
+    .tab-content-panel.active-tab { display: flex; flex-direction: column; gap: 14px; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER NAVBAR -->
+  <header class="top-nav">
+    <div class="brand-group">
+      <div class="brand-icon">
+        <!-- Robot Icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="8" width="14" height="10" rx="3"></rect>
+          <line x1="12" y1="5" x2="12" y2="8"></line>
+          <circle cx="12" cy="4" r="1.5"></circle>
+          <circle cx="9" cy="12" r="1.5" fill="currentColor"></circle>
+          <circle cx="15" cy="12" r="1.5" fill="currentColor"></circle>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+          <circle cx="4" cy="18" r="2"></circle>
+          <circle cx="20" cy="18" r="2"></circle>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AI Recon Rover <span class="badge-ver">v5.6</span></h1>
+        <p>Search & Rescue | Command Center</p>
+      </div>
+    </div>
+
+    <!-- CENTER PILLS -->
+    <div class="nav-status-group">
+      <div class="status-pill">
+        <div class="dot-indicator" id="gpuDot"></div>
+        <div class="pill-content">
+          <span class="pill-title" id="detectorDeviceTitle">GPU (CUDA)</span>
+          <span class="pill-sub" id="detectorDeviceSub">YOLO Inference</span>
+        </div>
+      </div>
+      <div class="status-pill">
+        <div class="dot-indicator" id="hwDot"></div>
+        <div class="pill-content">
+          <span class="pill-title" id="hwModeTitle">REAL HARDWARE</span>
+          <span class="pill-sub" id="hwModeSub">ESP32 Connected</span>
+        </div>
+      </div>
+      <div class="status-pill">
+        <div class="dot-indicator" id="missionDot"></div>
+        <div class="pill-content">
+          <span class="pill-title">MISSION</span>
+          <span class="pill-sub" id="missionStateLabel" style="color:#38bdf8;font-weight:700;">IDLE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT CONTROLS & E-STOP -->
+    <div class="nav-controls-group">
+      <label class="switch-control" onclick="toggleVoice()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        AI Voice
+        <input type="checkbox" id="voiceToggle" checked />
+        <div class="switch-track"><div class="switch-thumb"></div></div>
+      </label>
+
+      <label class="switch-control" onclick="toggleAudio()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Alert Sound
+        <input type="checkbox" id="audioToggle" checked />
+        <div class="switch-track"><div class="switch-thumb"></div></div>
+      </label>
+
+      <button class="btn-estop-top" onclick="sendCommand({action:'e_stop'})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6"/></svg>
+        E-STOP
+      </button>
+    </div>
+  </header>
+
+  <!-- BODY: SIDEBAR + VIEWPORT -->
+  <div class="app-body">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-nav">
+        <a class="nav-item active" onclick="switchNavTab('mission', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Mission Center
+        </a>
+        <a class="nav-item" onclick="switchNavTab('teleop', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 12 8"/><polygon points="12 8 16 12 12 16 12 8"/></svg>
+          Manual Teleop
+        </a>
+        <a class="nav-item" onclick="switchNavTab('setup', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Setup & Preflight
+        </a>
+        <a class="nav-item" onclick="switchNavTab('logs', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Logs
+        </a>
+        <a class="nav-item" href="/report" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Reports
+        </a>
+      </div>
+
+      <div class="sidebar-footer-card">
+        <div class="system-online-header">
+          <div class="dot-indicator"></div>
+          <span>System Online</span>
+        </div>
+        <div class="system-kv-row">
+          <span class="kv-key">Mode</span>
+          <span class="kv-val" id="sidebarMode">REAL HARDWARE</span>
+        </div>
+        <div class="system-kv-row">
+          <span class="kv-key">Compute</span>
+          <span class="kv-val" id="sidebarCompute">GPU (CUDA)</span>
+        </div>
+        <div class="system-kv-row">
+          <span class="kv-key">Rover</span>
+          <span class="kv-val" id="sidebarRover" style="color:#34d399;">Connected</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="viewport">
+
+      <!-- TOP MISSION READY BANNER -->
+      <div class="mission-status-banner">
+        <div class="banner-left">
+          <div class="check-circle-icon">&#10003;</div>
+          <div>
+            <div class="banner-text-title" id="bannerStatusTitle">Mission Ready</div>
+            <div class="banner-text-sub" id="bannerStatusSub">System initialized. Start autonomous mission to begin search and reconnaissance.</div>
+          </div>
+        </div>
+        <div class="banner-right-meta">
+          <span>Arena: <strong id="arenaDimLabel">2.0 m &times; 1.5 m</strong></span>
+          <span>Coverage: <strong id="topCoveragePct">0%</strong></span>
+          <a class="btn-report" href="/report" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Professor Report
+          </a>
+        </div>
+      </div>
+
+      <!-- POP-UP EMERGENCY ALERT BANNER -->
+      <div id="alertBanner">
+        <div>
+          <div class="alert-headline" id="alertHeadline">🚨 PERSON DETECTED — TARGET T01</div>
+          <div class="alert-route" id="alertRouteText">Shortest Path from Home: ...</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action" style="background:#059669;color:#fff;" onclick="dismissAlert()">Dismiss</button>
+        </div>
+      </div>
+
+      <!-- TAB 1: MISSION CENTER -->
+      <div id="tab-mission" class="tab-content-panel active-tab">
+
+        <!-- 3-COLUMN TACTICAL GRID -->
+        <div class="tactical-grid">
+
+          <!-- COLUMN 1: LIVE VIDEO & MISSION CONTROLS -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                YOLO Live Camera Feed
+              </div>
+              <span class="badge-fps" id="fpsBadge">15.0 FPS</span>
+            </div>
+
+            <div class="video-viewport">
+              <img id="videoStream" src="/video" alt="Live Camera Video" />
+              <div class="video-hud-overlay" id="hudOverlayText">
+                STATE: IDLE | CELL: [0, 0] | US: -- cm | YOLO: GPU
+              </div>
+              <div class="video-corner-bracket bracket-tl"></div>
+              <div class="video-corner-bracket bracket-tr"></div>
+              <div class="video-corner-bracket bracket-bl"></div>
+              <div class="video-corner-bracket bracket-br"></div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="action-btn-stack">
+              <div class="btn-row-split">
+                <button class="btn-action btn-start" onclick="sendCommand({action:'start'})">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Start Autonomous Mission
+                </button>
+                <button class="btn-action" onclick="sendCommand({action:'scan_now'})">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="13" r="4"/><path d="M5 7h14"/></svg>
+                  Scan Camera Now
+                </button>
+              </div>
+
+              <button class="btn-action" style="width:100%;" onclick="sendCommand({action:'ibvs_align'})">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                IBVS Visual Servo Align
+              </button>
+
+              <div class="btn-trio-row">
+                <button class="btn-action" onclick="sendCommand({action:'pause'})">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  Pause
+                </button>
+                <button class="btn-action" onclick="sendCommand({action:'resume'})">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Resume
+                </button>
+                <button class="btn-action" onclick="sendCommand({action:'return_home'})">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                  Return Home
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 2: ARENA MAP & RESCUE ROUTES -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                Bounded Arena Map &amp; Rescue Routes
+              </div>
+              <div class="map-controls-header">
+                <label><input type="checkbox" id="chkObserved" checked onchange="redrawCanvas()" /> Observed FOV</label>
+                <label><input type="checkbox" id="chkAstar" checked onchange="redrawCanvas()" /> A* Path</label>
+                <label><input type="checkbox" id="chkHeatmap" checked onchange="redrawCanvas()" /> Heatmap</label>
+              </div>
+            </div>
+
+            <canvas id="arenaCanvas" width="600" height="380" style="cursor:crosshair;" title="Click any cell to send Rover via A* (2D Nav Goal)" onclick="handleArenaClick(event)"></canvas>
+
+            <div class="map-legend-row">
+              <div class="legend-chip"><span class="swatch-box" style="background:#0f172a;border:1px solid #1e293b;"></span> Unknown</div>
+              <div class="legend-chip"><span class="swatch-box" style="background:#075985;"></span> Free</div>
+              <div class="legend-chip"><span class="swatch-box" style="background:#14532d;"></span> Visited</div>
+              <div class="legend-chip"><span class="swatch-box" style="background:#991b1b;"></span> Blocked</div>
+              <div class="legend-chip"><span class="swatch-box" style="background:#ea580c;"></span> Hazard</div>
+              <div class="legend-chip" style="margin-left:auto;"><span style="color:#38bdf8;">▶</span> Rover</div>
+              <div class="legend-chip"><span style="color:#10b981;font-weight:800;">Ⓗ</span> Home</div>
+              <div class="legend-chip"><span style="color:#ef4444;">📍</span> Survivor</div>
+              <div class="legend-chip"><span style="color:#10b981;font-weight:900;">━</span> A* Route</div>
+            </div>
+          </div>
+
+          <!-- COLUMN 3: TELEMETRY & GAUGES & MANUAL JOG -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Live Telemetry &amp; Coverage Metrics
+              </div>
+            </div>
+
+            <!-- DUAL CIRCULAR GAUGES -->
+            <div class="gauges-row">
+              <!-- Visited Gauge -->
+              <div class="gauge-card">
+                <div class="ring-wrapper">
+                  <svg viewBox="0 0 60 60">
+                    <circle class="ring-bg" cx="30" cy="30" r="25"></circle>
+                    <circle class="ring-progress" id="ringVisited" cx="30" cy="30" r="25" stroke="#10b981"></circle>
+                  </svg>
+                  <div class="ring-label-pct" id="visitedPctText">0%</div>
+                </div>
+                <div>
+                  <div class="gauge-info-text">Visited Coverage</div>
+                  <div class="gauge-info-sub" id="visitedRatioSub">0 / 0 Cells</div>
+                </div>
+              </div>
+
+              <!-- Observed FOV Gauge -->
+              <div class="gauge-card">
+                <div class="ring-wrapper">
+                  <svg viewBox="0 0 60 60">
+                    <circle class="ring-bg" cx="30" cy="30" r="25"></circle>
+                    <circle class="ring-progress" id="ringObserved" cx="30" cy="30" r="25" stroke="#38bdf8"></circle>
+                  </svg>
+                  <div class="ring-label-pct" id="observedPctText">0%</div>
+                </div>
+                <div>
+                  <div class="gauge-info-text">Observed FOV</div>
+                  <div class="gauge-info-sub" id="observedRatioSub">0 / 0 Cells</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STAT BLOCKS -->
+            <div class="stat-blocks-row">
+              <div class="stat-mini-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div>
+                  <div class="stat-mini-title">Rover Pose (x, y, &theta;)</div>
+                  <div class="stat-mini-val" id="poseValText">0.15 m, 0.15 m, 0°</div>
+                </div>
+              </div>
+              <div class="stat-mini-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/></svg>
+                <div>
+                  <div class="stat-mini-title">Ultrasonic / RSSI</div>
+                  <div class="stat-mini-val" id="usRssiText">-- cm / -- dBm</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BAYESIAN ENTROPY CARD -->
+            <div class="entropy-card">
+              <div class="entropy-header">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                  Bayesian Entropy &amp; <span id="voStatusBadge" style="color:#10b981;font-weight:700;">VO: STANDBY</span>
+                </span>
+                <span id="entropyBitsLabel" style="font-family:'JetBrains Mono',monospace;color:#38bdf8;font-weight:700;">0.0% (30.0 bits)</span>
+              </div>
+              <div class="entropy-progress-track">
+                <div class="entropy-progress-fill" id="entropyFillBar"></div>
+              </div>
+            </div>
+
+            <!-- MANUAL CONTROLS & EVENT LOG -->
+            <div class="controls-log-split">
+              <div>
+                <div class="jog-header">Manual Jog Controls</div>
+                <div class="jog-grid-2x2">
+                  <button class="btn-jog" onclick="sendCommand({action:'manual_move', move_type:'forward', value:15})">&#9650; Fwd 15cm</button>
+                  <button class="btn-jog" onclick="sendCommand({action:'manual_move', move_type:'backward', value:15})">&#9660; Back 15cm</button>
+                  <button class="btn-jog" onclick="sendCommand({action:'manual_move', move_type:'turn', value:45})">&#8634; Left 45°</button>
+                  <button class="btn-jog" onclick="sendCommand({action:'manual_move', move_type:'turn', value:-45})">&#8635; Right 45°</button>
+                </div>
+                <button class="btn-jog-stop" onclick="sendCommand({action:'manual_move', move_type:'stop', value:0})">&#9632; Stop Motors</button>
+              </div>
+
+              <div>
+                <div class="jog-header">Event Log</div>
+                <div class="log-box" id="eventLogBox"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- BOTTOM FULL-WIDTH SURVIVOR DATABASE -->
+        <div class="database-panel">
+          <div class="db-header-row">
+            <div class="db-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Survivor Database &amp; Triage-Weighted Rescue Dispatch Tour
+            </div>
+            <a class="btn-report" href="/api/targets/export.csv" target="_blank">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </a>
+          </div>
+
+          <!-- TOUR DISPATCH BANNER -->
+          <div class="tour-dispatch-box">
+            <span class="tour-pulse-icon">&#9889;</span>
+            <span class="tour-title">Triage-Weighted Multi-Target Rescue Dispatch Tour:</span>
+            <span class="tour-path-string" id="tourDispatchPath">Home (0,0) &mdash; Standby (No casualties logged)</span>
+          </div>
+
+          <!-- TABLE -->
+          <table class="survivor-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Priority</th>
+                <th>Posture</th>
+                <th>Location (x, y) [cell]</th>
+                <th>Distance (Home / Path)</th>
+                <th>A* Rescue Route (Turn-by-Turn)</th>
+                <th>Confidence</th>
+                <th>Snapshots</th>
+              </tr>
+            </thead>
+            <tbody id="survivorsTableBody">
+              <tr><td colspan="8" style="color:var(--text-muted);text-align:center;padding:24px;">No survivors detected yet. Start autonomous mission or click "Scan Camera Now".</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- TAB 4: MANUAL TELEOPERATION COCKPIT -->
+      <div id="tab-teleop" class="tab-content-panel">
+        <div class="tactical-grid" style="grid-template-columns: 1.55fr 1fr;">
+          
+          <!-- COCKPIT FPV VIEWPORT -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                First-Person View (FPV) Cockpit
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="collisionWarningBadge" style="display:none;background:#dc2626;color:#fff;font-size:0.75rem;font-weight:800;padding:3px 10px;border-radius:6px;animation:alertPulse 1.2s infinite alternate;">
+                  &#9888; OBSTACLE LOCKOUT (&lt;20cm)
+                </span>
+                <span class="badge-fps" id="teleopFpsBadge">15.0 FPS</span>
+              </div>
+            </div>
+
+            <!-- FPV Container with dynamic compass & HUD -->
+            <div class="video-viewport" style="aspect-ratio: 16 / 9; max-height: 440px;">
+              <img id="teleopVideoStream" src="/video" alt="FPV Feed" />
+              
+              <!-- Compass Ribbon Tape -->
+              <div style="position:absolute;top:0;left:0;right:0;height:26px;background:rgba(4,8,17,0.85);border-bottom:1px solid rgba(56,189,248,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#38bdf8;z-index:6;">
+                <span id="compassTapeText">&larr; [ W &bull; 270&deg; &bull; &bull; &bull; N &bull; 0&deg; &bull; &bull; &bull; E &bull; 90&deg; &bull; &bull; &bull; S &bull; 180&deg; ] &rarr;</span>
+              </div>
+
+              <!-- Reticle & Brackets -->
+              <div class="video-corner-bracket bracket-tl" style="top:34px;"></div>
+              <div class="video-corner-bracket bracket-tr" style="top:34px;"></div>
+              <div class="video-corner-bracket bracket-bl"></div>
+              <div class="video-corner-bracket bracket-br"></div>
+
+              <!-- Sonar Warning Arc Bar (Bottom of FPV) -->
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 12px;background:rgba(4,8,17,0.88);border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:0.75rem;z-index:6;">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <span id="sonarStatusDot" class="dot-indicator" style="background:#10b981;"></span>
+                  Proximity Sensor: <strong id="sonarDistVal" style="color:#fff;">52.3 cm</strong>
+                </span>
+                <span style="color:var(--text-muted);">Drive Mode: <strong id="activeGearText" style="color:#38bdf8;">Gear 2 (Standard 170 PWM)</strong></span>
+              </div>
+            </div>
+
+            <!-- Quick Action Bar -->
+            <div style="display:grid;grid-template-columns: 1fr 1fr 1fr;gap:8px;">
+              <button class="btn-action" onclick="sendCommand({action:'scan_now'})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="13" r="4"/><path d="M5 7h14"/></svg>
+                📸 Snap Evidence Photo
+              </button>
+              <button class="btn-action" onclick="sendCommand({action:'ibvs_align'})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                🎯 Center Survivor
+              </button>
+              <button class="btn-action" style="background:#991b1b;border-color:#ef4444;" onclick="sendCommand({action:'manual_move', move_type:'stop', value:0})">
+                &#9632; Emergency Brake
+              </button>
+            </div>
+          </div>
+
+          <!-- COCKPIT CONTROL CONSOLE -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+                Flight Controls &amp; Gearbox
+              </div>
+            </div>
+
+            <!-- Collision Interlock Toggle -->
+            <div style="background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:0.8rem;font-weight:700;color:#f8fafc;">&#128737;&#65039; Active Collision Avoidance Shield</div>
+                <div style="font-size:0.68rem;color:var(--text-muted);">Auto-locks forward drive when obstacle &lt; 20 cm</div>
+              </div>
+              <label class="switch-control" style="padding:4px 8px;">
+                <input type="checkbox" id="collisionShieldToggle" checked onchange="toggleCollisionShield()" />
+                <div class="switch-track"><div class="switch-thumb"></div></div>
+              </label>
+            </div>
+
+            <!-- Virtual 3-Speed Gearbox -->
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:6px;">Speed Throttle (Virtual Gearbox)</div>
+              <div style="display:grid;grid-template-columns: repeat(3, 1fr);gap:6px;">
+                <button class="btn-action" id="gear1Btn" onclick="setGear(1)" style="font-size:0.74rem;padding:7px 4px;">Gear 1 (130 PWM)</button>
+                <button class="btn-action" id="gear2Btn" onclick="setGear(2)" style="font-size:0.74rem;padding:7px 4px;background:#1d4ed8;border-color:#3b82f6;">Gear 2 (170 PWM)</button>
+                <button class="btn-action" id="gear3Btn" onclick="setGear(3)" style="font-size:0.74rem;padding:7px 4px;">Gear 3 (220 PWM)</button>
+              </div>
+            </div>
+
+            <!-- Step Distance Selector -->
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);margin-bottom:6px;">Step Jog Increment</div>
+              <div style="display:grid;grid-template-columns: repeat(3, 1fr);gap:6px;">
+                <button class="btn-action" id="step10Btn" onclick="setJogStep(10)" style="font-size:0.74rem;padding:6px;">10 cm</button>
+                <button class="btn-action" id="step25Btn" onclick="setJogStep(25)" style="font-size:0.74rem;padding:6px;background:#0284c7;border-color:#38bdf8;">25 cm</button>
+                <button class="btn-action" id="step50Btn" onclick="setJogStep(50)" style="font-size:0.74rem;padding:6px;">50 cm</button>
+              </div>
+            </div>
+
+            <!-- Visual D-PAD with WASD keyboard hints -->
+            <div style="background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;margin-bottom:4px;">
+                Tactical D-Pad &bull; Keyboard: <span style="color:#38bdf8;font-family:'JetBrains Mono',monospace;">W, A, S, D, Space</span>
+              </div>
+              
+              <!-- Forward [W] -->
+              <button class="btn-action" id="teleopFwdBtn" style="width:90px;height:42px;font-size:0.9rem;" onclick="triggerTeleopMove('forward')">
+                <span style="font-size:12px;color:var(--accent-cyan);margin-right:2px;">[W]</span> &#9650;
+              </button>
+
+              <!-- Left [A] / Stop [Space] / Right [D] -->
+              <div style="display:flex;gap:8px;">
+                <button class="btn-action" id="teleopLeftBtn" style="width:90px;height:42px;font-size:0.9rem;" onclick="triggerTeleopMove('turn_left')">
+                  <span style="font-size:12px;color:var(--accent-cyan);margin-right:2px;">[A]</span> &#8634;
+                </button>
+                <button class="btn-action" id="teleopStopBtn" style="width:90px;height:42px;background:#b91c1c;border-color:#ef4444;color:#fff;font-size:0.76rem;" onclick="triggerTeleopMove('stop')">
+                  [SPACE] STOP
+                </button>
+                <button class="btn-action" id="teleopRightBtn" style="width:90px;height:42px;font-size:0.9rem;" onclick="triggerTeleopMove('turn_right')">
+                  &#8635; <span style="font-size:12px;color:var(--accent-cyan);margin-left:2px;">[D]</span>
+                </button>
+              </div>
+
+              <!-- Backward [S] -->
+              <button class="btn-action" id="teleopBackBtn" style="width:90px;height:42px;font-size:0.9rem;" onclick="triggerTeleopMove('backward')">
+                <span style="font-size:12px;color:var(--accent-cyan);margin-right:2px;">[S]</span> &#9660;
+              </button>
+            </div>
+
+            <!-- Teleop Live Event Log -->
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">Cockpit Action Log</div>
+              <div class="log-box" id="teleopActionLog" style="height:90px;">
+                <div class="log-line"><span class="log-time">[SYSTEM]</span> Teleoperation cockpit ready. Use on-screen D-Pad or keyboard keys.</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: SETUP & PREFLIGHT -->
+      <div id="tab-setup" class="tab-content-panel">
+        <div class="card-panel" style="margin-bottom:14px;">
+          <div class="panel-header">
+            <div class="panel-title">Live Hardware IP &amp; Stream Endpoints</div>
+            <button class="btn-action" style="background:#0284c7;border-color:#38bdf8;" onclick="saveEndpointsLive()">Save &amp; Apply Live</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.82rem;">
+            <div>
+              <label style="display:block;color:var(--text-muted);margin-bottom:4px;font-weight:700;">ESP32 DevKit URL (from Serial Monitor)</label>
+              <input id="inputDevkitUrl" type="text" placeholder="http://192.168.43.101:80" style="width:100%;padding:8px 10px;border-radius:8px;background:#08111e;border:1px solid var(--border-subtle);color:#f8fafc;font-family:'JetBrains Mono',monospace;" />
+            </div>
+            <div>
+              <label style="display:block;color:var(--text-muted);margin-bottom:4px;font-weight:700;">Phone Camera MJPEG Stream URL (DroidCam)</label>
+              <input id="inputStreamUrl" type="text" placeholder="http://192.168.43.1:4747/video" style="width:100%;padding:8px 10px;border-radius:8px;background:#08111e;border:1px solid var(--border-subtle);color:#f8fafc;font-family:'JetBrains Mono',monospace;" />
+            </div>
+          </div>
+          <div id="endpointSaveStatus" style="font-size:0.78rem;color:#38bdf8;margin-top:8px;"></div>
+        </div>
+
+        <div class="card-panel" style="margin-bottom:14px;">
+          <div class="panel-header">
+            <div class="panel-title">Autonomous Environment &amp; Closed-Loop Drift Adaptation</div>
+            <span id="envCurrentBadge" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#10b981;">VO Heading Lock: ON | Auto-Trim: ON</span>
+          </div>
+          <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;">
+            Choose a floor preset or customize arena dimensions. <strong>Rugged Floor / Low-Turn Adaptive</strong> cuts 90&deg; turns by 60%, coalesces straight runs, uses 60&deg; camera FOV-assist, and runs closed-loop Visual Odometry heading drift correction + online motor auto-trim.
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+            <button class="btn-action" style="background:#065f46;border-color:#10b981;padding:10px;text-align:left;display:block;" onclick="applyEnvPreset('rugged_adaptive')">
+              <div style="font-weight:800;color:#fff;font-size:0.82rem;">&#9733; Rugged Floor / Low-Turn (2.0&times;1.5m)</div>
+              <div style="font-size:0.70rem;color:#a7f3d0;margin-top:3px;">Wide-lane stride=2, coalesced=2, FOV-Assist + VO Drift Lock (Recommended)</div>
+            </button>
+            <button class="btn-action" style="background:#1e3a8a;border-color:#3b82f6;padding:10px;text-align:left;display:block;" onclick="applyEnvPreset('compact_demo')">
+              <div style="font-weight:800;color:#fff;font-size:0.82rem;">&#9889; Compact Fast Demo (1.2&times;0.9m)</div>
+              <div style="font-size:0.70rem;color:#bfdbfe;margin-top:3px;">Only 2 turns total (~40s full mission + Return Home) — ideal for quick floor test</div>
+            </button>
+            <button class="btn-action" style="background:#0f172a;border-color:var(--border-subtle);padding:10px;text-align:left;display:block;" onclick="applyEnvPreset('dense_grid')">
+              <div style="font-weight:800;color:#f8fafc;font-size:0.82rem;">Dense Every-Row Grid (2.0&times;1.5m)</div>
+              <div style="font-size:0.70rem;color:var(--text-muted);margin-top:3px;">Standard lane_stride=1 every-row serpentine for ultra-smooth floors</div>
+            </button>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:10px 12px;font-size:0.78rem;">
+            <label>Length (m): <input id="inpArenaW" type="number" step="0.3" value="2.0" style="width:62px;padding:5px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#fff;" /></label>
+            <label>Breadth (m): <input id="inpArenaH" type="number" step="0.3" value="1.5" style="width:62px;padding:5px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#fff;" /></label>
+            <label>Lane Stride:
+              <select id="inpLaneStride" style="padding:5px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#fff;">
+                <option value="2">2 (Low-Turn Wide Lane)</option>
+                <option value="1">1 (Every Row)</option>
+              </select>
+            </label>
+            <label>Stop Dist (cm): <input id="inpStopDist" type="number" step="1" value="24" style="width:58px;padding:5px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#fff;" /></label>
+            <label style="display:flex;align-items:center;gap:5px;"><input id="chkVoDrift" type="checkbox" checked /> VO Drift Micro-Turn</label>
+            <label style="display:flex;align-items:center;gap:5px;"><input id="chkVoTrim" type="checkbox" checked /> Online Auto-Trim</label>
+            <button class="btn-action btn-start" style="margin-left:auto;padding:7px 14px;" onclick="saveCustomEnvironment()">Save &amp; Rebuild Grid</button>
+          </div>
+          <div id="envApplyStatus" style="font-size:0.78rem;color:#38bdf8;margin-top:6px;"></div>
+        </div>
+
+        <div class="card-panel" style="margin-bottom:14px;">
+          <div class="panel-header">
+            <div class="panel-title">Asymmetric Left/Right 90&deg; Turn &amp; Straight Drift Calibration</div>
+            <span id="calCurrentBadge" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#38bdf8;">deg/s: -- | cm/s: --</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:0.80rem;">
+            <div style="background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:12px;">
+              <div style="font-weight:700;color:#f8fafc;margin-bottom:4px;">1A. Left Turn (+90&deg;)</div>
+              <div style="color:var(--text-muted);font-size:0.72rem;margin-bottom:8px;">Click Test Left, enter actual degrees turned, click Apply Left.</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <button class="btn-action" style="background:#1d4ed8;border-color:#3b82f6;padding:6px 10px;" onclick="sendCommand({action:'manual_move', move_type:'turn', value:90})">Test 90&deg; Left</button>
+                <input id="inpActualTurnLeftDeg" type="number" step="5" value="90" style="width:68px;padding:6px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#f8fafc;" />
+                <button class="btn-action btn-start" style="padding:6px 10px;" onclick="applyTurnCal('left')">Apply Left</button>
+              </div>
+            </div>
+            <div style="background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:12px;">
+              <div style="font-weight:700;color:#f8fafc;margin-bottom:4px;">1B. Right Turn (-90&deg;)</div>
+              <div style="color:var(--text-muted);font-size:0.72rem;margin-bottom:8px;">Click Test Right, enter actual degrees turned, click Apply Right.</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <button class="btn-action" style="background:#1d4ed8;border-color:#3b82f6;padding:6px 10px;" onclick="sendCommand({action:'manual_move', move_type:'turn', value:-90})">Test 90&deg; Right</button>
+                <input id="inpActualTurnRightDeg" type="number" step="5" value="90" style="width:68px;padding:6px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#f8fafc;" />
+                <button class="btn-action btn-start" style="padding:6px 10px;" onclick="applyTurnCal('right')">Apply Right</button>
+              </div>
+            </div>
+            <div style="background:#08111e;border:1px solid var(--border-subtle);border-radius:10px;padding:12px;">
+              <div style="font-weight:700;color:#f8fafc;margin-bottom:4px;">2. Straight &amp; Trim (50 cm)</div>
+              <div style="color:var(--text-muted);font-size:0.72rem;margin-bottom:8px;">Actual cm moved &amp; drift (+cm right / -cm left):</div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <button class="btn-action" style="background:#1d4ed8;border-color:#3b82f6;padding:6px 10px;" onclick="sendCommand({action:'manual_move', move_type:'forward', value:50})">Test 50cm</button>
+                <input id="inpActualDistCm" type="number" step="1" value="50" style="width:58px;padding:6px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#f8fafc;" title="Actual cm" />
+                <input id="inpDriftCm" type="number" step="1" value="0" style="width:54px;padding:6px;border-radius:6px;background:#0f172a;border:1px solid var(--border-subtle);color:#f8fafc;" title="Drift cm (+right, -left)" />
+                <button class="btn-action btn-start" style="padding:6px 10px;" onclick="applyStraightCal()">Apply</button>
+              </div>
+            </div>
+          </div>
+          <div id="calApplyStatus" style="font-size:0.78rem;color:#10b981;margin-top:8px;"></div>
+        </div>
+
+        <div class="card-panel">
+          <div class="panel-header">
+            <div class="panel-title">System Preflight &amp; Arena Setup</div>
+            <button class="btn-action btn-start" onclick="runPreflightChecks()">Run Preflight Checks</button>
+          </div>
+          <div id="preflightResults" style="font-size:0.84rem;display:flex;flex-direction:column;gap:8px;">
+            Click "Run Preflight Checks" to verify ESP32 communication, camera stream, YOLO weights, and arena boundaries.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: LOGS -->
+      <div id="tab-logs" class="tab-content-panel">
+        <div class="card-panel">
+          <div class="panel-header">
+            <div class="panel-title">Full Mission Logs</div>
+          </div>
+          <div class="log-box" id="fullLogBox" style="height:450px;"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let currentState = null;
+    let voiceActive = true;
+    let audioActive = true;
+    let lastSeenAlertSeq = 0;
+    let lastSpokenState = "IDLE";
+
+    function toggleVoice() {
+      voiceActive = document.getElementById('voiceToggle').checked;
+    }
+    function toggleAudio() {
+      audioActive = document.getElementById('audioToggle').checked;
+    }
+
+    function speakText(text) {
+      if (!voiceActive || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1.05;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    function switchNavTab(tabId, el) {
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active-tab'));
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active-tab');
+      if (tabId === 'mission' && currentState) redrawCanvas();
+    }
+
+    function dismissAlert() {
+      document.getElementById('alertBanner').style.display = 'none';
+    }
+
+    let isMoveInFlight = false;
+    async function sendCommand(payload) {
+      if (payload.action === 'manual_move' && payload.move_type !== 'stop') {
+        if (isMoveInFlight) {
+          logTeleopAction('Move already in progress — waiting for completion...');
+          return;
+        }
+        isMoveInFlight = true;
+      }
+      try {
+        const resp = await fetch('/api/command', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (data && data.ok === false && (data.error || data.detail)) {
+          logTeleopAction('[WARN] ' + (data.error || data.detail));
+        }
+        fetchState();
+      } catch (e) {
+        logTeleopAction('[ERROR] Network request failed: ' + e);
+      } finally {
+        isMoveInFlight = false;
+      }
+    }
+
+    async function applyTurnCal(dir) {
+      const inpId = dir === 'right' ? 'inpActualTurnRightDeg' : 'inpActualTurnLeftDeg';
+      const actualDeg = parseFloat((document.getElementById(inpId) && document.getElementById(inpId).value) || '90');
+      const stEl = document.getElementById('calApplyStatus');
+      stEl.textContent = 'Applying ' + dir.toUpperCase() + ' turn calibration...';
+      try {
+        const resp = await fetch('/api/calibrate/apply', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ kind: 'turn', actual_value: actualDeg, commanded_value: 90, direction: dir || 'both' })
+        });
+        const data = await resp.json();
+        stEl.textContent = data.detail || 'Turn calibration applied!';
+        fetchState();
+      } catch (e) {
+        stEl.textContent = 'Failed: ' + e;
+      }
+    }
+
+    async function applyEnvPreset(presetName) {
+      const stEl = document.getElementById('envApplyStatus');
+      stEl.textContent = 'Applying environment preset...';
+      try {
+        const resp = await fetch('/api/config/environment', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ preset: presetName })
+        });
+        const data = await resp.json();
+        stEl.textContent = data.detail || 'Preset applied!';
+        fetchState();
+      } catch (e) {
+        stEl.textContent = 'Failed: ' + e;
+      }
+    }
+
+    async function saveCustomEnvironment() {
+      const stEl = document.getElementById('envApplyStatus');
+      stEl.textContent = 'Saving & rebuilding arena grid...';
+      const payload = {
+        width_m: parseFloat(document.getElementById('inpArenaW').value || '2.0'),
+        height_m: parseFloat(document.getElementById('inpArenaH').value || '1.5'),
+        lane_stride: parseInt(document.getElementById('inpLaneStride').value || '2', 10),
+        fov_assist_visit: parseInt(document.getElementById('inpLaneStride').value || '2', 10) >= 2,
+        stop_distance_cm: parseFloat(document.getElementById('inpStopDist').value || '24'),
+        vo_heading_correction_enabled: document.getElementById('chkVoDrift').checked,
+        vo_auto_trim_enabled: document.getElementById('chkVoTrim').checked
+      };
+      try {
+        const resp = await fetch('/api/config/environment', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        stEl.textContent = data.detail || 'Environment updated!';
+        fetchState();
+      } catch (e) {
+        stEl.textContent = 'Failed: ' + e;
+      }
+    }
+
+    async function applyStraightCal() {
+      const actualCm = parseFloat(document.getElementById('inpActualDistCm').value || '50');
+      const driftCm = parseFloat(document.getElementById('inpDriftCm').value || '0');
+      const stEl = document.getElementById('calApplyStatus');
+      stEl.textContent = 'Applying straight calibration...';
+      try {
+        const resp = await fetch('/api/calibrate/apply', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ kind: 'straight', actual_value: actualCm, commanded_value: 50, lateral_drift_cm: driftCm })
+        });
+        const data = await resp.json();
+        stEl.textContent = data.detail || 'Straight calibration applied!';
+        fetchState();
+      } catch (e) {
+        stEl.textContent = 'Failed: ' + e;
+      }
+    }
+
+    async function saveEndpointsLive() {
+      const devkit = document.getElementById('inputDevkitUrl').value.trim();
+      const stream = document.getElementById('inputStreamUrl').value.trim();
+      const stEl = document.getElementById('endpointSaveStatus');
+      stEl.textContent = 'Saving & applying...';
+      try {
+        const resp = await fetch('/api/config/endpoints', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ devkit_url: devkit, stream_url: stream })
+        });
+        const data = await resp.json();
+        stEl.textContent = data.detail || 'Saved!';
+        fetchState();
+      } catch (e) {
+        stEl.textContent = 'Failed to save endpoints: ' + e;
+      }
+    }
+
+    async function runPreflightChecks() {
+      const el = document.getElementById('preflightResults');
+      el.innerHTML = "Running checks...";
+      const resp = await fetch('/api/preflight', {method: 'POST'});
+      const data = await resp.json();
+      if (data && data.checks) {
+        el.innerHTML = data.checks.map(c => `
+          <div style="background:#091220;padding:10px 14px;border-radius:8px;border-left:4px solid ${c.passed ? '#10b981' : '#ef4444'};">
+            <strong>${c.passed ? '✓ PASS' : '✗ FAIL'} &mdash; ${c.name}</strong>: ${c.detail}
+            ${c.fix_instruction ? `<div style="color:#fca5a5;margin-top:3px;">Fix: ${c.fix_instruction}</div>` : ''}
+          </div>
+        `).join('');
+      }
+    }
+
+
+    // ==================== MANUAL TELEOPERATION COCKPIT LOGIC ====================
+    let activeJogDistanceCm = 25;
+    let collisionShieldEnabled = true;
+    let activeGearPwm = 170;
+
+    function setJogStep(distCm) {
+      activeJogDistanceCm = distCm;
+      [10, 25, 50].forEach(d => {
+        const btn = document.getElementById('step' + d + 'Btn');
+        if (btn) {
+          if (d === distCm) {
+            btn.style.background = '#0284c7';
+            btn.style.borderColor = '#38bdf8';
+          } else {
+            btn.style.background = '#111d31';
+            btn.style.borderColor = 'var(--border-subtle)';
+          }
+        }
+      });
+      logTeleopAction('Jog step increment set to ' + distCm + ' cm');
+    }
+
+    function setGear(gearNum) {
+      const gears = { 1: 130, 2: 170, 3: 220 };
+      activeGearPwm = gears[gearNum] || 170;
+      const names = { 1: 'Gear 1 (Crawler 130 PWM)', 2: 'Gear 2 (Standard 170 PWM)', 3: 'Gear 3 (Sprint 220 PWM)' };
+      document.getElementById('activeGearText').textContent = names[gearNum];
+
+      [1, 2, 3].forEach(g => {
+        const btn = document.getElementById('gear' + g + 'Btn');
+        if (btn) {
+          if (g === gearNum) {
+            btn.style.background = '#1d4ed8';
+            btn.style.borderColor = '#3b82f6';
+          } else {
+            btn.style.background = '#111d31';
+            btn.style.borderColor = 'var(--border-subtle)';
+          }
+        }
+      });
+      sendCommand({ action: 'set_gear_pwm', value: activeGearPwm });
+      logTeleopAction('Speed throttle synced to ESP32: ' + names[gearNum]);
+    }
+
+    function toggleCollisionShield() {
+      const toggle = document.getElementById('collisionShieldToggle');
+      collisionShieldEnabled = toggle ? toggle.checked : true;
+      logTeleopAction('Active Collision Shield: ' + (collisionShieldEnabled ? 'ENABLED' : 'DISABLED'));
+    }
+
+    function triggerTeleopMove(actionType) {
+      if (!currentState) return;
+      const usDist = (currentState.robot_status && currentState.robot_status.ultrasonic_cm) || 50.0;
+
+      // Obstacle Interlock: block forward move if obstacle < 20cm and shield is ON
+      if (actionType === 'forward' && collisionShieldEnabled && usDist > 0 && usDist < 20.0) {
+        speakText('Obstacle lockout. Forward motion blocked.');
+        logTeleopAction('FORWARD DRIVE BLOCKED by Collision Shield! Proximity: ' + usDist.toFixed(1) + ' cm');
+        highlightBtn('teleopFwdBtn', '#ef4444');
+        return;
+      }
+
+      if (actionType === 'forward') {
+        highlightBtn('teleopFwdBtn', '#38bdf8');
+        sendCommand({ action: 'manual_move', move_type: 'forward', value: activeJogDistanceCm });
+        logTeleopAction('Executing: FORWARD ' + activeJogDistanceCm + ' cm');
+      } else if (actionType === 'backward') {
+        highlightBtn('teleopBackBtn', '#38bdf8');
+        sendCommand({ action: 'manual_move', move_type: 'backward', value: activeJogDistanceCm });
+        logTeleopAction('Executing: BACKWARD ' + activeJogDistanceCm + ' cm');
+      } else if (actionType === 'turn_left') {
+        highlightBtn('teleopLeftBtn', '#38bdf8');
+        sendCommand({ action: 'manual_move', move_type: 'turn', value: 45.0 });
+        logTeleopAction('Executing: PIVOT LEFT 45 deg');
+      } else if (actionType === 'turn_right') {
+        highlightBtn('teleopRightBtn', '#38bdf8');
+        sendCommand({ action: 'manual_move', move_type: 'turn', value: -45.0 });
+        logTeleopAction('Executing: PIVOT RIGHT 45 deg');
+      } else if (actionType === 'stop') {
+        highlightBtn('teleopStopBtn', '#f87171');
+        sendCommand({ action: 'manual_move', move_type: 'stop', value: 0 });
+        logTeleopAction('EMERGENCY BRAKE: Motors halted.');
+      }
+    }
+
+    function highlightBtn(btnId, color) {
+      const b = document.getElementById(btnId);
+      if (b) {
+        const orig = b.style.borderColor;
+        b.style.borderColor = color;
+        b.style.boxShadow = '0 0 10px ' + color;
+        setTimeout(() => {
+          b.style.borderColor = orig;
+          b.style.boxShadow = 'none';
+        }, 300);
+      }
+    }
+
+    function logTeleopAction(msg) {
+      const box = document.getElementById('teleopActionLog');
+      if (box) {
+        const timeStr = new Date().toLocaleTimeString();
+        box.innerHTML = '<div class="log-line"><span class="log-time">[' + timeStr + ']</span> ' + msg + '</div>' + box.innerHTML;
+      }
+    }
+
+    // Keyboard WASD & Spacebar Teleoperation Event Listener
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      const k = e.key.toLowerCase();
+      if (k === 'w' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        triggerTeleopMove('forward');
+      } else if (k === 's' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        triggerTeleopMove('backward');
+      } else if (k === 'a' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        triggerTeleopMove('turn_left');
+      } else if (k === 'd' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        triggerTeleopMove('turn_right');
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        triggerTeleopMove('stop');
+      }
+    });
+
+    function updateUI(s) {
+      currentState = s;
+      if (s.calibration && document.getElementById('calCurrentBadge')) {
+        const dl = s.calibration.deg_per_s_left > 1 ? s.calibration.deg_per_s_left : s.calibration.deg_per_s;
+        const dr = s.calibration.deg_per_s_right > 1 ? s.calibration.deg_per_s_right : s.calibration.deg_per_s;
+        document.getElementById('calCurrentBadge').textContent =
+          `Turn L:${dl} R:${dr} deg/s | Speed:${s.calibration.cm_per_s} cm/s | Trim L:${s.calibration.left_trim} R:${s.calibration.right_trim}`;
+      }
+      if (s.config && s.config.robot && document.getElementById('inputDevkitUrl')) {
+        const inpD = document.getElementById('inputDevkitUrl');
+        if (document.activeElement !== inpD && !inpD.value) inpD.value = s.config.robot.devkit_url || '';
+      }
+      if (s.config && s.config.camera && document.getElementById('inputStreamUrl')) {
+        const inpS = document.getElementById('inputStreamUrl');
+        if (document.activeElement !== inpS && !inpS.value) inpS.value = s.config.camera.stream_url || '';
+      }
+
+      // Nav badges
+      document.getElementById('missionStateLabel').textContent = s.state;
+      document.getElementById('detectorDeviceTitle').textContent = s.detector_device || 'GPU (CUDA)';
+      document.getElementById('sidebarCompute').textContent = s.detector_device || 'GPU (CUDA)';
+      document.getElementById('hwModeTitle').textContent = s.evidence_mode;
+      document.getElementById('sidebarMode').textContent = s.evidence_mode;
+      document.getElementById('fpsBadge').textContent = (s.camera_fps || 15.0).toFixed(1) + ' FPS';
+
+      const roverConn = (s.robot_status && s.robot_status.connected);
+      document.getElementById('hwModeSub').textContent = roverConn ? 'ESP32 Connected' : 'ESP32 Standby';
+      document.getElementById('sidebarRover').textContent = roverConn ? 'Connected' : 'Standby';
+      document.getElementById('sidebarRover').style.color = roverConn ? '#34d399' : '#f59e0b';
+
+      // Top banner
+      if (s.grid) {
+        document.getElementById('arenaDimLabel').textContent = `${s.grid.width_m.toFixed(1)} m × ${s.grid.height_m.toFixed(1)} m`;
+      }
+      if (s.coverage) {
+        const vPct = s.coverage.visited_coverage_pct || 0;
+        const oPct = s.coverage.observed_coverage_pct || 0;
+        document.getElementById('topCoveragePct').textContent = vPct.toFixed(0) + '%';
+        document.getElementById('visitedPctText').textContent = vPct.toFixed(0) + '%';
+        document.getElementById('observedPctText').textContent = oPct.toFixed(0) + '%';
+        document.getElementById('visitedRatioSub').textContent = `${s.coverage.visited_cells} / ${s.coverage.eligible_cells} Cells`;
+        document.getElementById('observedRatioSub').textContent = `${s.coverage.observed_cells} / ${s.coverage.eligible_cells} Cells`;
+
+        // Update circular ring progress (Circumference = 2 * PI * 25 ≈ 157)
+        const offsetV = 157 - (157 * vPct / 100);
+        const offsetO = 157 - (157 * oPct / 100);
+        document.getElementById('ringVisited').style.strokeDashoffset = offsetV;
+        document.getElementById('ringObserved').style.strokeDashoffset = offsetO;
+
+        // Entropy
+        if (s.coverage.entropy_reduction_pct !== undefined) {
+          const redPct = s.coverage.entropy_reduction_pct;
+          const bitsLeft = s.coverage.shannon_entropy_bits;
+          document.getElementById('entropyBitsLabel').textContent = `${redPct.toFixed(1)}% (${bitsLeft.toFixed(1)} bits left)`;
+          document.getElementById('entropyFillBar').style.width = redPct.toFixed(1) + '%';
+        }
+      }
+
+      if (s.visual_odometry) {
+        const voEl = document.getElementById('voStatusBadge');
+        if (voEl) {
+          voEl.textContent = 'VO: ' + s.visual_odometry.status + ' (' + s.visual_odometry.magnitude_px + 'px)';
+          voEl.style.color = (s.visual_odometry.status === 'LOW_FLOW_SLIP_CHECK') ? '#f59e0b' : '#10b981';
+        }
+      }
+
+      // Pose & Ultrasonic
+      if (s.pose) {
+        document.getElementById('poseValText').textContent = `${s.pose.x_m.toFixed(2)} m, ${s.pose.y_m.toFixed(2)} m, ${s.pose.heading_deg.toFixed(0)}°`;
+      }
+      if (s.robot_status) {
+        const us = (s.robot_status.ultrasonic_cm !== undefined && s.robot_status.ultrasonic_cm > 0) ? `${s.robot_status.ultrasonic_cm.toFixed(1)} cm` : '-- cm';
+        const rssi = s.robot_status.rssi ? `${s.robot_status.rssi} dBm` : '-- dBm';
+        document.getElementById('usRssiText').textContent = `${us} / ${rssi}`;
+      }
+
+      // Voice announcements on state change
+      if (s.state && s.state !== lastSpokenState) {
+        if (s.state === 'MISSION_COMPLETE') {
+          speakText("Reconnaissance mission complete. Rover safely returned to home base.");
+        } else if (s.state === 'RETURNING_HOME' && lastSpokenState !== 'RETURNING_HOME') {
+          speakText("Search sweep complete. Returning to home base via A-star path.");
+        }
+        lastSpokenState = s.state;
+      }
+
+      // Alert Banner
+      if (s.latest_alert && s.latest_alert.alert_seq > lastSeenAlertSeq) {
+        lastSeenAlertSeq = s.latest_alert.alert_seq;
+        const banner = document.getElementById('alertBanner');
+        banner.style.display = 'flex';
+        document.getElementById('alertHeadline').textContent = `🚨 PERSON DETECTED — ${s.latest_alert.target_id} [${s.latest_alert.triage_priority}] at (${s.latest_alert.x_m.toFixed(2)}m, ${s.latest_alert.y_m.toFixed(2)}m)`;
+        document.getElementById('alertRouteText').textContent = `Shortest Path from Home: ${s.latest_alert.rescue_directions}`;
+        speakText(`Alert! Survivor ${s.latest_alert.target_id} confirmed. Posture is ${s.latest_alert.posture_label}.`);
+      }
+
+      // Multi-Target Rescue Tour Banner
+      if (s.rescue_tour && s.rescue_tour.tour_summary) {
+        document.getElementById('tourDispatchPath').textContent = `${s.rescue_tour.tour_summary} (Total Distance: ${s.rescue_tour.total_tour_distance_m.toFixed(2)} m)`;
+      }
+
+      // Survivor Table
+      const tb = document.getElementById('survivorsTableBody');
+      if (s.targets && s.targets.length > 0) {
+        tb.innerHTML = s.targets.map(t => {
+          let pClass = 'p3-badge';
+          if (t.triage_priority === 'P1-CRITICAL') pClass = 'p1-badge';
+          else if (t.triage_priority === 'P2-URGENT') pClass = 'p2-badge';
+
+          return `
+            <tr>
+              <td><strong style="color:#fff;font-size:0.85rem;">${t.target_id}</strong></td>
+              <td><span class="pill-priority ${pClass}">${t.triage_priority || 'P3-AMBULATORY'}</span></td>
+              <td><strong>${t.posture_label || 'STANDING'}</strong></td>
+              <td>(${t.x_m.toFixed(2)} m, ${t.y_m.toFixed(2)} m) [${t.col},${t.row}]</td>
+              <td>${t.distance_from_home_m.toFixed(2)} m / ${(t.rescue_path_distance_m || 0).toFixed(2)} m</td>
+              <td><span class="route-bubble">${t.rescue_directions}</span></td>
+              <td><strong>${(t.confidence * 100).toFixed(0)}%</strong></td>
+              <td>
+                ${t.snapshot_path ? `<a class="btn-view-snap" href="/${t.snapshot_path}" target="_blank">View</a>` : '&mdash;'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Synchronize Teleop Cockpit Elements
+      if (s.pose) {
+        const hdg = Math.round(s.pose.heading_deg);
+        const compassTape = document.getElementById('compassTapeText');
+        if (compassTape) {
+          compassTape.textContent = '← [ W • 270° • • • N • 0° • • • E • 90° • • • S • 180° ] → (Current: ' + hdg + '°)';
+        }
+      }
+      if (s.robot_status) {
+        const usVal = s.robot_status.ultrasonic_cm || -1;
+        const sonarTxt = document.getElementById('sonarDistVal');
+        const sonarDot = document.getElementById('sonarStatusDot');
+        const warnBadge = document.getElementById('collisionWarningBadge');
+        if (sonarTxt && sonarDot && warnBadge) {
+          if (usVal > 0) {
+            sonarTxt.textContent = usVal.toFixed(1) + ' cm';
+            if (usVal < 20.0) {
+              sonarDot.style.background = '#ef4444';
+              warnBadge.style.display = 'inline-block';
+            } else if (usVal < 45.0) {
+              sonarDot.style.background = '#f59e0b';
+              warnBadge.style.display = 'none';
+            } else {
+              sonarDot.style.background = '#10b981';
+              warnBadge.style.display = 'none';
+            }
+          } else {
+            sonarTxt.textContent = '-- cm';
+            warnBadge.style.display = 'none';
+          }
+        }
+      }
+
+      // Event Logs
+      if (s.events) {
+        const logHtml = s.events.slice().reverse().map(e => `
+          <div class="log-line">
+            <span class="log-time">[${new Date(e.timestamp * 1000).toLocaleTimeString()}]</span>
+            <span class="${e.event_type === 'TARGET_CONFIRMED' ? 'log-tag-alert' : 'log-tag'}">${e.event_type}</span>: ${e.message}
+          </div>
+        `).join('');
+        document.getElementById('eventLogBox').innerHTML = logHtml;
+        const fullEl = document.getElementById('fullLogBox');
+        if (fullEl) fullEl.innerHTML = logHtml;
+      }
+
+      redrawCanvas();
+    }
+
+    async function handleArenaClick(ev) {
+      if (!currentState || !currentState.grid) return;
+      if (currentState.state !== 'IDLE' && currentState.state !== 'PAUSED') {
+        alert('Pause or wait for IDLE state before sending a Click-to-Navigate 2D Nav Goal.');
+        return;
+      }
+      const canvas = document.getElementById('arenaCanvas');
+      const rect = canvas.getBoundingClientRect();
+      const x = (ev.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (ev.clientY - rect.top) * (canvas.height / rect.height);
+      const g = currentState.grid;
+      const col = Math.floor(x / (canvas.width / g.cols));
+      const row = g.rows - 1 - Math.floor(y / (canvas.height / g.rows));
+      if (col < 0 || col >= g.cols || row < 0 || row >= g.rows) return;
+      await sendCommand({ action: 'goto_cell', col: col, row: row });
+    }
+
+    function redrawCanvas() {
+      if (!currentState || !currentState.grid) return;
+      const canvas = document.getElementById('arenaCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const g = currentState.grid;
+      const cw = canvas.width / g.cols;
+      const ch = canvas.height / g.rows;
+
+      const chkObs = document.getElementById('chkObserved') ? document.getElementById('chkObserved').checked : true;
+      const chkAstar = document.getElementById('chkAstar') ? document.getElementById('chkAstar').checked : true;
+      const chkHeat = document.getElementById('chkHeatmap') ? document.getElementById('chkHeatmap').checked : true;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grid Cells
+      for (let r = 0; r < g.rows; r++) {
+        for (let c = 0; c < g.cols; c++) {
+          const cell = g.cells[r][c];
+          const x = c * cw;
+          const y = (g.rows - 1 - r) * ch;
+
+          if (cell.status === 'VISITED') ctx.fillStyle = '#0f3825';
+          else if (cell.status === 'HAZARD') ctx.fillStyle = '#9a3412';
+          else if (cell.status === 'BLOCKED') ctx.fillStyle = '#450a0a';
+          else if (cell.status === 'FREE') ctx.fillStyle = '#0c2444';
+          else ctx.fillStyle = '#070f1e';
+
+          ctx.fillRect(x, y, cw, ch);
+
+          // Translucent FOV overlay
+          if (chkObs && cell.observed && cell.status !== 'BLOCKED') {
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
+            ctx.fillRect(x, y, cw, ch);
+          }
+
+          ctx.strokeStyle = '#121f33';
+          ctx.strokeRect(x, y, cw, ch);
+        }
+      }
+
+      // Outer Geofence Border
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+      // Planned Rover Path (Yellow dashed)
+      if (currentState.planned_path && currentState.planned_path.length > 1) {
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.85)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        currentState.planned_path.forEach((pt, i) => {
+          const px = (pt[0] + 0.5) * cw;
+          const py = (g.rows - 1 - pt[1] + 0.5) * ch;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // A* Rescue Route (Emerald Green Glow)
+      if (chkAstar && currentState.targets && currentState.targets.length > 0) {
+        const t0 = currentState.targets[0];
+        if (t0.path_from_home && t0.path_from_home.length > 1) {
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          t0.path_from_home.forEach((pt, i) => {
+            const px = (pt[0] + 0.5) * cw;
+            const py = (g.rows - 1 - pt[1] + 0.5) * ch;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          });
+          ctx.stroke();
+        }
+      }
+
+      // Home Base
+      if (g.home) {
+        const hx = (g.home[0] + 0.5) * cw;
+        const hy = (g.rows - 1 - g.home[1] + 0.5) * ch;
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(hx, hy, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#062818';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('H', hx, hy);
+      }
+
+      // Survivor Targets & Heatmap
+      if (currentState.targets) {
+        currentState.targets.forEach(t => {
+          const tx = (t.x_m / g.width_m) * canvas.width;
+          const ty = canvas.height - (t.y_m / g.height_m) * canvas.height;
+
+          if (chkHeat) {
+            const radGrad = ctx.createRadialGradient(tx, ty, 3, tx, ty, 48);
+            radGrad.addColorStop(0, 'rgba(239, 68, 68, 0.6)');
+            radGrad.addColorStop(0.5, 'rgba(239, 68, 68, 0.2)');
+            radGrad.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+            ctx.fillStyle = radGrad;
+            ctx.beginPath();
+            ctx.arc(tx, ty, 48, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Pin
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.fillText(t.target_id, tx + 12, ty + 3);
+        });
+      }
+
+      // Rover Position & Direction Triangle
+      if (currentState.pose) {
+        const rx = (currentState.pose.x_m / g.width_m) * canvas.width;
+        const ry = canvas.height - (currentState.pose.y_m / g.height_m) * canvas.height;
+
+        // Rover body circle
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.arc(rx, ry, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Direction Arrow Triangle
+        const rad = (currentState.pose.heading_deg * Math.PI) / 180.0;
+        ctx.save();
+        ctx.translate(rx, ry);
+        ctx.rotate(-rad);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(11, 0);
+        ctx.lineTo(-6, -6);
+        ctx.lineTo(-3, 0);
+        ctx.lineTo(-6, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    async function fetchState() {
+      try {
+        const resp = await fetch('/api/state');
+        if (resp.ok) updateUI(await resp.json());
+      } catch (e) {}
+    }
+
+    function initWebSocket() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${proto}//${location.host}/ws`);
+      ws.onmessage = (ev) => {
+        try { updateUI(JSON.parse(ev.data)); } catch (e) {}
+      };
+      ws.onclose = () => setTimeout(initWebSocket, 1500);
+    }
+
+    fetchState();
+    initWebSocket();
+  </script>
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Recon Rover — Pin-Accurate Interactive Hardware Wiring Diagram (v5.5)</title>
+<style>
+  :root {
+    --bg: #070b14;
+    --card: #0f172a;
+    --panel: #1e293b;
+    --border: #334155;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: var(--bg); color: var(--text); padding: 20px; line-height: 1.45; }
+  .header { text-align: center; margin-bottom: 16px; }
+  .header h1 { font-size: 24px; color: #38bdf8; margin-bottom: 4px; }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  .safety-banner {
+    background: rgba(239, 68, 68, 0.12);
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .safety-item h4 { color: #fca5a5; font-size: 13.5px; margin-bottom: 3px; }
+  .safety-item p { color: #e2e8f0; font-size: 12.5px; }
+
+  .stage-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    background: var(--card);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .stage-btn {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid #475569;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .stage-btn:hover { border-color: #38bdf8; }
+  .stage-btn.active { background: #38bdf8; color: #070b14; border-color: #38bdf8; }
+
+  .diagram-wrapper {
+    background: #04070d;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+  }
+  svg { display: block; margin: 0 auto; user-select: none; }
+  .wire-group { transition: opacity 0.2s ease, filter 0.2s ease; cursor: pointer; }
+  .wire-group.dimmed { opacity: 0.12; }
+  .wire-group.highlighted { opacity: 1.0 !important; filter: drop-shadow(0 0 8px #38bdf8); }
+
+  .info-bar {
+    text-align: center;
+    font-size: 13.5px;
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    color: #e0f2fe;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .grid-2col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .card h2 { font-size: 16px; color: #38bdf8; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #1e293b; }
+  th { background: #070b14; color: var(--muted); text-transform: uppercase; font-size: 11px; }
+  tr.wire-row { cursor: pointer; transition: background 0.15s; }
+  tr.wire-row:hover, tr.wire-row.active-row { background: rgba(56, 189, 248, 0.15); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AI Recon Rover — 100% Pin-Accurate Interactive Wiring Schematic (v5.5)</h1>
+  <p>Exact Physical Pin Order for 30-Pin DOIT ESP32 DevKit V1 + 16-Pin TB6612FNG + HC-SR04 Voltage Divider + Dual Power Supplies</p>
+</div>
+
+<div class="safety-banner">
+  <div class="safety-item">
+    <h4>1. NEVER Touch 6V Battery (VM) to ESP32</h4>
+    <p>The 4×AA Battery Red (+) wire goes <strong>ONLY to TB6612 VM</strong> (via switch). TB6612 logic <strong>VCC</strong> gets <strong>3.3V</strong> from ESP32 <code>3V3</code>. Never short <code>VM</code> and <code>VCC</code> together!</p>
+  </div>
+  <div class="safety-item">
+    <h4>2. ALWAYS Use 1kΩ + 2kΩ on HC-SR04 ECHO</h4>
+    <p>HC-SR04 runs at 5V (from ESP32 <code>VIN</code>), so its <code>ECHO</code> pin outputs 5V. Passing it through <strong>1kΩ series + 2kΩ to GND</strong> steps it down to a safe <strong>3.33V</strong> for ESP32 <code>D35</code>.</p>
+  </div>
+  <div class="safety-item">
+    <h4>3. Common Ground (GND) Ties All 4 Together</h4>
+    <p>ESP32 <code>GND</code>, TB6612 <code>GND</code>, 4×AA Battery <code>Black (-)</code>, and HC-SR04 <code>GND</code> must all plug into the same Breadboard Ground Rail.</p>
+  </div>
+</div>
+
+<div class="stage-bar">
+  <button class="stage-btn active" onclick="filterStage('all', this)">Show All 20 Connections</button>
+  <button class="stage-btn" onclick="filterStage('stage1', this)">Stage 1: Power & Common Ground (6 Wires)</button>
+  <button class="stage-btn" onclick="filterStage('stage2', this)">Stage 2: Ultrasonic + 3.3V Divider (5 Wires)</button>
+  <button class="stage-btn" onclick="filterStage('stage3', this)">Stage 3: TB6612 Driver & Motors (11 Wires)</button>
+</div>
+
+<div class="info-bar" id="hoverInfo">
+  💡 Tip: Click any stage button above or hover/click any wire or table row below to isolate and trace that exact connection!
+</div>
+
+<div class="diagram-wrapper">
+  <svg width="1180" height="760" viewBox="0 0 1180 760" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="drop" x="-5%" y="-5%" width="110%" height="110%">
+        <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.65"/>
+      </filter>
+    </defs>
+
+    <rect width="1180" height="760" fill="#04070d"/>
+
+    <!-- Common Ground Rail Bar at Bottom -->
+    <g transform="translate(80, 680)" filter="url(#drop)">
+      <rect x="0" y="0" width="1020" height="36" rx="6" fill="#0f172a" stroke="#64748b" stroke-width="2"/>
+      <line x1="20" y1="18" x2="1000" y2="18" stroke="#38bdf8" stroke-width="3" stroke-dasharray="8,6"/>
+      <text x="510" y="23" fill="#f8fafc" font-size="13" font-weight="bold" text-anchor="middle">
+        BREADBOARD COMMON GROUND (GND) RAIL — ALL BLACK GROUND WIRES MEET HERE
+      </text>
+      <circle cx="140" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+      <circle cx="290" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+      <circle cx="445" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+      <circle cx="715" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+      <circle cx="885" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+      <circle cx="965" cy="18" r="6" fill="#f8fafc" stroke="#000" stroke-width="2"/>
+    </g>
+
+    <!-- Left & Right Motors -->
+    <g transform="translate(25, 110)" filter="url(#drop)">
+      <rect x="0" y="0" width="125" height="75" rx="8" fill="#eab308" stroke="#ca8a04" stroke-width="2"/>
+      <rect x="-12" y="12" width="12" height="50" rx="3" fill="#1e293b" stroke="#475569"/>
+      <text x="62" y="32" fill="#070b14" font-size="12" font-weight="900" text-anchor="middle">LEFT MOTOR</text>
+      <text x="62" y="50" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">(TT Gear Motor A)</text>
+      <circle cx="118" cy="25" r="5" fill="#dc2626" stroke="#fff"/>
+      <text x="106" y="29" fill="#070b14" font-size="9" font-weight="bold" text-anchor="end">M1+</text>
+      <circle cx="118" cy="52" r="5" fill="#0284c7" stroke="#fff"/>
+      <text x="106" y="56" fill="#070b14" font-size="9" font-weight="bold" text-anchor="end">M1-</text>
+    </g>
+
+    <g transform="translate(25, 225)" filter="url(#drop)">
+      <rect x="0" y="0" width="125" height="75" rx="8" fill="#eab308" stroke="#ca8a04" stroke-width="2"/>
+      <rect x="-12" y="12" width="12" height="50" rx="3" fill="#1e293b" stroke="#475569"/>
+      <text x="62" y="32" fill="#070b14" font-size="12" font-weight="900" text-anchor="middle">RIGHT MOTOR</text>
+      <text x="62" y="50" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">(TT Gear Motor B)</text>
+      <circle cx="118" cy="25" r="5" fill="#dc2626" stroke="#fff"/>
+      <text x="106" y="29" fill="#070b14" font-size="9" font-weight="bold" text-anchor="end">M2-</text>
+      <circle cx="118" cy="52" r="5" fill="#0284c7" stroke="#fff"/>
+      <text x="106" y="56" fill="#070b14" font-size="9" font-weight="bold" text-anchor="end">M2+</text>
+    </g>
+
+    <!-- 4xAA Battery Pack -->
+    <g transform="translate(25, 440)" filter="url(#drop)">
+      <rect x="0" y="0" width="160" height="120" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+      <rect x="12" y="14" width="136" height="20" rx="4" fill="#d97706"/>
+      <rect x="12" y="38" width="136" height="20" rx="4" fill="#d97706"/>
+      <rect x="12" y="62" width="136" height="20" rx="4" fill="#d97706"/>
+      <rect x="12" y="86" width="136" height="20" rx="4" fill="#d97706"/>
+      <text x="80" y="55" fill="#fff" font-size="12" font-weight="900" text-anchor="middle">4 × AA ALKALINE</text>
+      <text x="80" y="75" fill="#fef08a" font-size="11" font-weight="800" text-anchor="middle">6.0V MOTOR SUPPLY</text>
+      <rect x="35" y="-52" width="90" height="36" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+      <text x="80" y="-30" fill="#4ade80" font-size="11" font-weight="bold" text-anchor="middle">ON/OFF SWITCH</text>
+    </g>
+
+    <!-- TB6612FNG Module -->
+    <g transform="translate(240, 60)" filter="url(#drop)">
+      <rect x="0" y="0" width="190" height="270" rx="8" fill="#991b1b" stroke="#ef4444" stroke-width="2.5"/>
+      <text x="95" y="25" fill="#fef2f2" font-size="14" font-weight="900" text-anchor="middle">TB6612FNG</text>
+      <text x="95" y="41" fill="#fca5a5" font-size="10" font-weight="700" text-anchor="middle">16-PIN DUAL DRIVER</text>
+      <rect x="52" y="95" width="86" height="80" rx="4" fill="#090d16" stroke="#475569"/>
+      <text x="95" y="138" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">TB6612FNG</text>
+
+      <!-- Left pins -->
+      <circle cx="10" cy="65" r="5" fill="#dc2626" stroke="#fff"/><text x="22" y="69" fill="#fff" font-size="11" font-weight="bold">VM (6V)</text>
+      <circle cx="10" cy="90" r="5" fill="#f97316" stroke="#fff"/><text x="22" y="94" fill="#fed7aa" font-size="11" font-weight="bold">VCC (3.3V)</text>
+      <circle cx="10" cy="115" r="5" fill="#000" stroke="#fff"/><text x="22" y="119" fill="#cbd5e1" font-size="11" font-weight="bold">GND</text>
+      <circle cx="10" cy="140" r="5" fill="#38bdf8" stroke="#fff"/><text x="22" y="144" fill="#fff" font-size="11" font-weight="bold">AO1</text>
+      <circle cx="10" cy="165" r="5" fill="#0284c7" stroke="#fff"/><text x="22" y="169" fill="#fff" font-size="11" font-weight="bold">AO2</text>
+      <circle cx="10" cy="190" r="5" fill="#0284c7" stroke="#fff"/><text x="22" y="194" fill="#fff" font-size="11" font-weight="bold">BO2</text>
+      <circle cx="10" cy="215" r="5" fill="#38bdf8" stroke="#fff"/><text x="22" y="219" fill="#fff" font-size="11" font-weight="bold">BO1</text>
+      <circle cx="10" cy="240" r="5" fill="#000" stroke="#fff"/><text x="22" y="244" fill="#cbd5e1" font-size="11" font-weight="bold">GND</text>
+
+      <!-- Right pins -->
+      <circle cx="180" cy="65" r="5" fill="#eab308" stroke="#fff"/><text x="168" y="69" fill="#fef08a" font-size="11" font-weight="bold" text-anchor="end">PWMA</text>
+      <circle cx="180" cy="90" r="5" fill="#3b82f6" stroke="#fff"/><text x="168" y="94" fill="#bfdbfe" font-size="11" font-weight="bold" text-anchor="end">AIN2</text>
+      <circle cx="180" cy="115" r="5" fill="#60a5fa" stroke="#fff"/><text x="168" y="119" fill="#bfdbfe" font-size="11" font-weight="bold" text-anchor="end">AIN1</text>
+      <circle cx="180" cy="140" r="5" fill="#10b981" stroke="#fff"/><text x="168" y="144" fill="#a7f3d0" font-size="11" font-weight="bold" text-anchor="end">STBY</text>
+      <circle cx="180" cy="165" r="5" fill="#60a5fa" stroke="#fff"/><text x="168" y="169" fill="#bfdbfe" font-size="11" font-weight="bold" text-anchor="end">BIN1</text>
+      <circle cx="180" cy="190" r="5" fill="#3b82f6" stroke="#fff"/><text x="168" y="194" fill="#bfdbfe" font-size="11" font-weight="bold" text-anchor="end">BIN2</text>
+      <circle cx="180" cy="215" r="5" fill="#eab308" stroke="#fff"/><text x="168" y="219" fill="#fef08a" font-size="11" font-weight="bold" text-anchor="end">PWMB</text>
+      <circle cx="180" cy="240" r="5" fill="#000" stroke="#fff"/><text x="168" y="244" fill="#cbd5e1" font-size="11" font-weight="bold" text-anchor="end">GND</text>
+    </g>
+
+    <!-- DOIT ESP32 DevKit V1 (Center) -->
+    <g transform="translate(535, 35)" filter="url(#drop)">
+      <rect x="0" y="0" width="230" height="450" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="2.5"/>
+      <rect x="42" y="18" width="146" height="95" rx="4" fill="#94a3b8" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="115" y="65" fill="#0f172a" font-size="13" font-weight="900" text-anchor="middle">ESP-WROOM-32</text>
+      <text x="115" y="82" fill="#1e293b" font-size="10" font-weight="700" text-anchor="middle">Wi-Fi 2.4GHz MCU</text>
+
+      <text x="115" y="245" fill="#38bdf8" font-size="13" font-weight="900" text-anchor="middle">DOIT ESP32</text>
+      <text x="115" y="262" fill="#38bdf8" font-size="13" font-weight="900" text-anchor="middle">DEVKIT V1</text>
+      <text x="115" y="278" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">(All 30 Pins Shown)</text>
+
+      <rect x="80" y="436" width="70" height="22" rx="4" fill="#cbd5e1" stroke="#fff"/>
+      <text x="115" y="451" fill="#0f172a" font-size="9.5" font-weight="900" text-anchor="middle">MICRO-USB</text>
+
+      <!-- Left pins -->
+      <circle cx="10" cy="60" r="4" fill="#475569"/><text x="20" y="64" fill="#64748b" font-size="10">EN</text>
+      <circle cx="10" cy="85" r="4" fill="#475569"/><text x="20" y="89" fill="#64748b" font-size="10">VP (36)</text>
+      <circle cx="10" cy="110" r="4" fill="#475569"/><text x="20" y="114" fill="#64748b" font-size="10">VN (39)</text>
+      <circle cx="10" cy="135" r="4" fill="#475569"/><text x="20" y="139" fill="#64748b" font-size="10">D34</text>
+      <circle cx="10" cy="160" r="5.5" fill="#c084fc" stroke="#fff"/><text x="22" y="164" fill="#e9d5ff" font-size="11" font-weight="bold">D35 (ECHO)</text>
+      <circle cx="10" cy="185" r="5.5" fill="#a855f7" stroke="#fff"/><text x="22" y="189" fill="#e9d5ff" font-size="11" font-weight="bold">D32 (TRIG)</text>
+      <circle cx="10" cy="210" r="5.5" fill="#eab308" stroke="#fff"/><text x="22" y="214" fill="#fef08a" font-size="11" font-weight="bold">D33 (PWMB)</text>
+      <circle cx="10" cy="235" r="5.5" fill="#eab308" stroke="#fff"/><text x="22" y="239" fill="#fef08a" font-size="11" font-weight="bold">D25 (PWMA)</text>
+      <circle cx="10" cy="260" r="5.5" fill="#60a5fa" stroke="#fff"/><text x="22" y="264" fill="#bfdbfe" font-size="11" font-weight="bold">D26 (AIN1)</text>
+      <circle cx="10" cy="285" r="5.5" fill="#3b82f6" stroke="#fff"/><text x="22" y="289" fill="#bfdbfe" font-size="11" font-weight="bold">D27 (AIN2)</text>
+      <circle cx="10" cy="310" r="5.5" fill="#60a5fa" stroke="#fff"/><text x="22" y="314" fill="#bfdbfe" font-size="11" font-weight="bold">D14 (BIN1)</text>
+      <circle cx="10" cy="335" r="5.5" fill="#3b82f6" stroke="#fff"/><text x="22" y="339" fill="#bfdbfe" font-size="11" font-weight="bold">D12 (BIN2)</text>
+      <circle cx="10" cy="360" r="5.5" fill="#10b981" stroke="#fff"/><text x="22" y="364" fill="#a7f3d0" font-size="11" font-weight="bold">D13 (STBY)</text>
+      <circle cx="10" cy="385" r="5.5" fill="#000" stroke="#fff"/><text x="22" y="389" fill="#fff" font-size="11" font-weight="bold">GND</text>
+      <circle cx="10" cy="410" r="5.5" fill="#ef4444" stroke="#fff"/><text x="22" y="414" fill="#fca5a5" font-size="11" font-weight="bold">VIN (5V)</text>
+
+      <!-- Right pins -->
+      <circle cx="220" cy="60" r="4" fill="#475569"/><text x="208" y="64" fill="#64748b" font-size="10" text-anchor="end">D23</text>
+      <circle cx="220" cy="85" r="4" fill="#475569"/><text x="208" y="89" fill="#64748b" font-size="10" text-anchor="end">D22</text>
+      <circle cx="220" cy="110" r="4" fill="#475569"/><text x="208" y="114" fill="#64748b" font-size="10" text-anchor="end">TX0</text>
+      <circle cx="220" cy="135" r="4" fill="#475569"/><text x="208" y="139" fill="#64748b" font-size="10" text-anchor="end">RX0</text>
+      <circle cx="220" cy="160" r="4" fill="#475569"/><text x="208" y="164" fill="#64748b" font-size="10" text-anchor="end">D21</text>
+      <circle cx="220" cy="185" r="4" fill="#475569"/><text x="208" y="189" fill="#64748b" font-size="10" text-anchor="end">D19</text>
+      <circle cx="220" cy="210" r="4" fill="#475569"/><text x="208" y="214" fill="#64748b" font-size="10" text-anchor="end">D18</text>
+      <circle cx="220" cy="235" r="4" fill="#475569"/><text x="208" y="239" fill="#64748b" font-size="10" text-anchor="end">D5</text>
+      <circle cx="220" cy="260" r="4" fill="#475569"/><text x="208" y="264" fill="#64748b" font-size="10" text-anchor="end">TX2</text>
+      <circle cx="220" cy="285" r="4" fill="#475569"/><text x="208" y="289" fill="#64748b" font-size="10" text-anchor="end">RX2</text>
+      <circle cx="220" cy="310" r="4" fill="#475569"/><text x="208" y="314" fill="#64748b" font-size="10" text-anchor="end">D4</text>
+      <circle cx="220" cy="335" r="4" fill="#475569"/><text x="208" y="339" fill="#64748b" font-size="10" text-anchor="end">D2</text>
+      <circle cx="220" cy="360" r="4" fill="#475569"/><text x="208" y="364" fill="#64748b" font-size="10" text-anchor="end">D15</text>
+      <circle cx="220" cy="385" r="5.5" fill="#000" stroke="#fff"/><text x="208" y="389" fill="#cbd5e1" font-size="11" font-weight="bold" text-anchor="end">GND</text>
+      <circle cx="220" cy="410" r="5.5" fill="#f97316" stroke="#fff"/><text x="208" y="414" fill="#fed7aa" font-size="11" font-weight="bold" text-anchor="end">3V3 (3.3V)</text>
+    </g>
+
+    <!-- 5V Power Bank -->
+    <g transform="translate(560, 545)" filter="url(#drop)">
+      <rect x="0" y="0" width="180" height="72" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+      <text x="90" y="30" fill="#38bdf8" font-size="13" font-weight="900" text-anchor="middle">5V USB POWER BANK</text>
+      <text x="90" y="48" fill="#94a3b8" font-size="10.5" font-weight="600" text-anchor="middle">Powers ESP32 via USB Cable</text>
+      <path d="M 90 0 L 90 -52" stroke="#38bdf8" stroke-width="5"/>
+      <text x="102" y="-22" fill="#7dd3fc" font-size="10" font-weight="bold">USB Cable</text>
+    </g>
+
+    <!-- HC-SR04 Sensor -->
+    <g transform="translate(860, 55)" filter="url(#drop)">
+      <rect x="0" y="0" width="240" height="145" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2.5"/>
+      <text x="120" y="24" fill="#f8fafc" font-size="13.5" font-weight="900" text-anchor="middle">HC-SR04 ULTRASONIC</text>
+      <circle cx="62" cy="74" r="34" fill="#94a3b8" stroke="#e2e8f0" stroke-width="3"/>
+      <circle cx="62" cy="74" r="24" fill="#1e293b"/>
+      <text x="62" y="78" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle">T</text>
+      <circle cx="178" cy="74" r="34" fill="#94a3b8" stroke="#e2e8f0" stroke-width="3"/>
+      <circle cx="178" cy="74" r="24" fill="#1e293b"/>
+      <text x="178" y="78" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle">R</text>
+
+      <circle cx="60" cy="135" r="5.5" fill="#ef4444" stroke="#fff"/><text x="60" y="123" fill="#fca5a5" font-size="10.5" font-weight="bold" text-anchor="middle">VCC (5V)</text>
+      <circle cx="100" cy="135" r="5.5" fill="#a855f7" stroke="#fff"/><text x="100" y="123" fill="#e9d5ff" font-size="10.5" font-weight="bold" text-anchor="middle">TRIG</text>
+      <circle cx="140" cy="135" r="5.5" fill="#c084fc" stroke="#fff"/><text x="140" y="123" fill="#e9d5ff" font-size="10.5" font-weight="bold" text-anchor="middle">ECHO (5V)</text>
+      <circle cx="180" cy="135" r="5.5" fill="#000" stroke="#fff"/><text x="180" y="123" fill="#fff" font-size="10.5" font-weight="bold" text-anchor="middle">GND</text>
+    </g>
+
+    <!-- Voltage Divider on Breadboard -->
+    <g transform="translate(850, 310)" filter="url(#drop)">
+      <rect x="0" y="0" width="265" height="230" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2.5"/>
+      <text x="132" y="24" fill="#0f172a" font-size="13" font-weight="900" text-anchor="middle">ECHO VOLTAGE DIVIDER</text>
+      <text x="132" y="40" fill="#475569" font-size="10.5" font-weight="700" text-anchor="middle">(Steps 5.0V Echo down to Safe 3.33V)</text>
+
+      <rect x="25" y="63" width="215" height="24" rx="4" fill="#e2e8f0" stroke="#cbd5e1"/>
+      <text x="35" y="79" fill="#334155" font-size="10" font-weight="bold">Row A (Echo 5V In)</text>
+      <circle cx="150" cy="75" r="5" fill="#c084fc" stroke="#581c87" stroke-width="1.5"/>
+
+      <line x1="190" y1="75" x2="190" y2="130" stroke="#78350f" stroke-width="3"/>
+      <rect x="176" y="88" width="28" height="28" rx="4" fill="#fde68a" stroke="#92400e" stroke-width="2"/>
+      <text x="190" y="106" fill="#78350f" font-size="10" font-weight="900" text-anchor="middle">1kΩ</text>
+
+      <rect x="25" y="118" width="215" height="24" rx="4" fill="#f3e8ff" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="35" y="134" fill="#581c87" font-size="10" font-weight="900">Row X (3.3V Tap &rarr; D35)</text>
+      <circle cx="150" cy="130" r="6" fill="#a855f7" stroke="#fff" stroke-width="2"/>
+
+      <line x1="190" y1="130" x2="190" y2="190" stroke="#991b1b" stroke-width="3"/>
+      <rect x="176" y="146" width="28" height="28" rx="4" fill="#fecaca" stroke="#991b1b" stroke-width="2"/>
+      <text x="190" y="164" fill="#7f1d1d" font-size="10" font-weight="900" text-anchor="middle">2kΩ</text>
+
+      <rect x="25" y="178" width="215" height="24" rx="4" fill="#cbd5e1" stroke="#64748b"/>
+      <text x="35" y="194" fill="#0f172a" font-size="10" font-weight="900">Row G (To Common GND)</text>
+      <circle cx="190" cy="190" r="5" fill="#000" stroke="#fff"/>
+    </g>
+
+    <!-- Wires -->
+    <!-- W1 -->
+    <g class="wire-group stage-stage1" id="wire-w1" onclick="highlightWire('w1')" onmouseover="showWireInfo('Wire 1 (Black): ESP32 GND (Left Pin 14) -> Breadboard Common GND Rail')">
+      <path d="M 545 420 L 525 420 L 525 698" stroke="#64748b" stroke-width="3.5" fill="none"/>
+      <path d="M 545 420 L 525 420 L 525 698" stroke="#000000" stroke-width="2" stroke-dasharray="5,4" fill="none"/>
+    </g>
+    <!-- W2 -->
+    <g class="wire-group stage-stage1" id="wire-w2" onclick="highlightWire('w2')" onmouseover="showWireInfo('Wire 2 (Black): TB6612 GND -> Breadboard Common GND Rail')">
+      <path d="M 250 175 L 220 175 L 220 698" stroke="#64748b" stroke-width="3.5" fill="none"/>
+      <path d="M 250 300 L 220 300" stroke="#64748b" stroke-width="3.5" fill="none"/>
+    </g>
+    <!-- W3 -->
+    <g class="wire-group stage-stage1" id="wire-w3" onclick="highlightWire('w3')" onmouseover="showWireInfo('Wire 3 (Black): 4xAA Battery Holder Black (-) -> Breadboard Common GND Rail')">
+      <path d="M 185 530 L 370 530 L 370 698" stroke="#64748b" stroke-width="4" fill="none"/>
+    </g>
+    <!-- W4 -->
+    <g class="wire-group stage-stage1" id="wire-w4" onclick="highlightWire('w4')" onmouseover="showWireInfo('Wire 4 (Black): HC-SR04 GND & 2kΩ Resistor Bottom Leg -> Breadboard Common GND Rail')">
+      <path d="M 1040 190 L 1140 190 L 1140 698 L 1045 698" stroke="#64748b" stroke-width="3.5" fill="none"/>
+      <path d="M 1040 500 L 1040 698" stroke="#64748b" stroke-width="3.5" fill="none"/>
+    </g>
+    <!-- W5 -->
+    <g class="wire-group stage-stage1" id="wire-w5" onclick="highlightWire('w5')" onmouseover="showWireInfo('Wire 5 (Orange): ESP32 3V3 (Right Pin 15) -> TB6612 VCC (3.3V Logic Supply)')">
+      <path d="M 755 445 L 785 445 L 785 515 L 205 515 L 205 150 L 250 150" stroke="#f97316" stroke-width="3.5" fill="none"/>
+    </g>
+    <!-- W6 -->
+    <g class="wire-group stage-stage1" id="wire-w6" onclick="highlightWire('w6')" onmouseover="showWireInfo('Wire 6 (Red): 4xAA Battery Red (+) -> Master Switch -> TB6612 VM (6.0V Motor Power)')">
+      <path d="M 105 440 L 105 424" stroke="#dc2626" stroke-width="4" fill="none"/>
+      <path d="M 105 388 L 105 345 L 195 345 L 195 125 L 250 125" stroke="#dc2626" stroke-width="4" fill="none"/>
+    </g>
+
+    <!-- W18 -->
+    <g class="wire-group stage-stage2" id="wire-w18" onclick="highlightWire('w18')" onmouseover="showWireInfo('Wire 18 (Bright Red): ESP32 VIN (5V from USB Power Bank) -> HC-SR04 VCC')">
+      <path d="M 545 445 L 505 445 L 505 20 L 920 20 L 920 190" stroke="#ef4444" stroke-width="3.5" fill="none"/>
+    </g>
+    <!-- W19 -->
+    <g class="wire-group stage-stage2" id="wire-w19" onclick="highlightWire('w19')" onmouseover="showWireInfo('Wire 19 (Purple): ESP32 GPIO 32 (D32) -> HC-SR04 TRIG')">
+      <path d="M 545 220 L 515 220 L 515 30 L 960 30 L 960 190" stroke="#a855f7" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W20 -->
+    <g class="wire-group stage-stage2" id="wire-w20" onclick="highlightWire('w20')" onmouseover="showWireInfo('Wire 20 (Lavender): HC-SR04 ECHO -> 1kΩ Resistor -> Row X Midpoint -> ESP32 GPIO 35 (D35)')">
+      <path d="M 1000 190 L 1000 385" stroke="#c084fc" stroke-width="3.5" fill="none"/>
+      <path d="M 1000 440 L 815 440 L 815 15 L 495 15 L 495 195 L 545 195" stroke="#c084fc" stroke-width="3.5" fill="none"/>
+    </g>
+
+    <!-- W7 -->
+    <g class="wire-group stage-stage3" id="wire-w7" onclick="highlightWire('w7')" onmouseover="showWireInfo('Wire 7 (Green): ESP32 GPIO 13 (D13) -> TB6612 STBY (Standby Enable)')">
+      <path d="M 545 395 L 445 395 L 445 200 L 420 200" stroke="#10b981" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W8 -->
+    <g class="wire-group stage-stage3" id="wire-w8" onclick="highlightWire('w8')" onmouseover="showWireInfo('Wire 8 (Yellow): ESP32 GPIO 25 (D25) -> TB6612 PWMA (Left Motor Speed)')">
+      <path d="M 545 270 L 485 270 L 485 125 L 420 125" stroke="#eab308" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W9 -->
+    <g class="wire-group stage-stage3" id="wire-w9" onclick="highlightWire('w9')" onmouseover="showWireInfo('Wire 9 (Light Blue): ESP32 GPIO 26 (D26) -> TB6612 AIN1 (Left Motor Dir 1)')">
+      <path d="M 545 295 L 475 295 L 475 175 L 420 175" stroke="#60a5fa" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W10 -->
+    <g class="wire-group stage-stage3" id="wire-w10" onclick="highlightWire('w10')" onmouseover="showWireInfo('Wire 10 (Blue): ESP32 GPIO 27 (D27) -> TB6612 AIN2 (Left Motor Dir 2)')">
+      <path d="M 545 320 L 465 320 L 465 150 L 420 150" stroke="#3b82f6" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W11 -->
+    <g class="wire-group stage-stage3" id="wire-w11" onclick="highlightWire('w11')" onmouseover="showWireInfo('Wire 11 (Yellow): ESP32 GPIO 33 (D33) -> TB6612 PWMB (Right Motor Speed)')">
+      <path d="M 545 245 L 455 245 L 455 275 L 420 275" stroke="#eab308" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W12 -->
+    <g class="wire-group stage-stage3" id="wire-w12" onclick="highlightWire('w12')" onmouseover="showWireInfo('Wire 12 (Light Blue): ESP32 GPIO 14 (D14) -> TB6612 BIN1 (Right Motor Dir 1)')">
+      <path d="M 545 345 L 438 345 L 438 225 L 420 225" stroke="#60a5fa" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W13 -->
+    <g class="wire-group stage-stage3" id="wire-w13" onclick="highlightWire('w13')" onmouseover="showWireInfo('Wire 13 (Blue): ESP32 GPIO 12 (D12) -> TB6612 BIN2 (Right Motor Dir 2)')">
+      <path d="M 545 370 L 430 370 L 430 250 L 420 250" stroke="#3b82f6" stroke-width="3" fill="none"/>
+    </g>
+    <!-- W14 & W15 -->
+    <g class="wire-group stage-stage3" id="wire-w14" onclick="highlightWire('w14')" onmouseover="showWireInfo('Wires 14 & 15 (Cyan): TB6612 AO1 & AO2 -> Left Yellow TT Gear Motor Terminals')">
+      <path d="M 250 200 L 180 200 L 180 135 L 143 135" stroke="#38bdf8" stroke-width="3.5" fill="none"/>
+      <path d="M 250 225 L 170 225 L 170 162 L 143 162" stroke="#0284c7" stroke-width="3.5" fill="none"/>
+    </g>
+    <!-- W16 & W17 -->
+    <g class="wire-group stage-stage3" id="wire-w16" onclick="highlightWire('w16')" onmouseover="showWireInfo('Wires 16 & 17 (Cyan): TB6612 BO1 & BO2 -> Right Yellow TT Gear Motor Terminals')">
+      <path d="M 250 250 L 143 250" stroke="#0284c7" stroke-width="3.5" fill="none"/>
+      <path d="M 250 275 L 143 277" stroke="#38bdf8" stroke-width="3.5" fill="none"/>
+    </g>
+
+  </svg>
+</div>
+
+<div class="grid-2col">
+  <div class="card">
+    <h2>Interactive Wire-by-Wire Checklist (Click Row to Trace)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>From Pin</th><th>To Pin</th><th>Stage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="wire-row" onclick="highlightWire('w1')"><td><strong>W1</strong></td><td>ESP32 <code>GND</code> (Left Pin 14)</td><td>Breadboard GND Rail</td><td><span class="pill" style="background:#334155;color:#fff;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w2')"><td><strong>W2</strong></td><td>TB6612 <code>GND</code> (Pins 3 & 8)</td><td>Breadboard GND Rail</td><td><span class="pill" style="background:#334155;color:#fff;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w3')"><td><strong>W3</strong></td><td>4×AA Battery <code>Black (-)</code></td><td>Breadboard GND Rail</td><td><span class="pill" style="background:#334155;color:#fff;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w4')"><td><strong>W4</strong></td><td>HC-SR04 <code>GND</code> & 2kΩ Leg</td><td>Breadboard GND Rail</td><td><span class="pill" style="background:#334155;color:#fff;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w5')"><td><strong>W5</strong></td><td>ESP32 <code>3V3</code> (Right Pin 15)</td><td>TB6612 <code>VCC</code></td><td><span class="pill" style="background:#f97316;color:#000;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w6')"><td><strong>W6</strong></td><td>4×AA Battery <code>Red (+)</code></td><td>Switch &rarr; TB6612 <code>VM</code></td><td><span class="pill" style="background:#dc2626;color:#fff;">Stage 1</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w18')"><td><strong>W18</strong></td><td>ESP32 <code>VIN</code> (Left Pin 15)</td><td>HC-SR04 <code>VCC</code></td><td><span class="pill" style="background:#ef4444;color:#fff;">Stage 2</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w19')"><td><strong>W19</strong></td><td>ESP32 <code>D32</code> (Left Pin 6)</td><td>HC-SR04 <code>TRIG</code></td><td><span class="pill" style="background:#a855f7;color:#fff;">Stage 2</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w20')"><td><strong>W20</strong></td><td>HC-SR04 <code>ECHO</code> &rarr; 1kΩ</td><td>Row X Node &rarr; ESP32 <code>D35</code></td><td><span class="pill" style="background:#c084fc;color:#000;">Stage 2</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w7')"><td><strong>W7</strong></td><td>ESP32 <code>D13</code> (Left Pin 13)</td><td>TB6612 <code>STBY</code></td><td><span class="pill" style="background:#10b981;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w8')"><td><strong>W8</strong></td><td>ESP32 <code>D25</code> (Left Pin 8)</td><td>TB6612 <code>PWMA</code></td><td><span class="pill" style="background:#eab308;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w9')"><td><strong>W9</strong></td><td>ESP32 <code>D26</code> (Left Pin 9)</td><td>TB6612 <code>AIN1</code></td><td><span class="pill" style="background:#60a5fa;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w10')"><td><strong>W10</strong></td><td>ESP32 <code>D27</code> (Left Pin 10)</td><td>TB6612 <code>AIN2</code></td><td><span class="pill" style="background:#3b82f6;color:#fff;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w11')"><td><strong>W11</strong></td><td>ESP32 <code>D33</code> (Left Pin 7)</td><td>TB6612 <code>PWMB</code></td><td><span class="pill" style="background:#eab308;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w12')"><td><strong>W12</strong></td><td>ESP32 <code>D14</code> (Left Pin 11)</td><td>TB6612 <code>BIN1</code></td><td><span class="pill" style="background:#60a5fa;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w13')"><td><strong>W13</strong></td><td>ESP32 <code>D12</code> (Left Pin 12)</td><td>TB6612 <code>BIN2</code></td><td><span class="pill" style="background:#3b82f6;color:#fff;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w14')"><td><strong>W14/15</strong></td><td>TB6612 <code>AO1</code> & <code>AO2</code></td><td>Left TT Motor Terminals</td><td><span class="pill" style="background:#38bdf8;color:#000;">Stage 3</span></td></tr>
+        <tr class="wire-row" onclick="highlightWire('w16')"><td><strong>W16/17</strong></td><td>TB6612 <code>BO1</code> & <code>BO2</code></td><td>Right TT Motor Terminals</td><td><span class="pill" style="background:#38bdf8;color:#000;">Stage 3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>3 Safe Bring-Up Rules</h2>
+    <p style="font-size:12.5px;color:#cbd5e1;line-height:1.6;">
+      • <strong>Rule 1:</strong> Keep 6V Battery Red wire strictly on TB6612 <code>VM</code>. TB6612 <code>VCC</code> gets 3.3V from ESP32 <code>3V3</code>.<br/>
+      • <strong>Rule 2:</strong> Always pass HC-SR04 <code>ECHO</code> through 1kΩ in series with 2kΩ to GND so ESP32 <code>D35</code> receives safe 3.33V.<br/>
+      • <strong>Rule 3:</strong> Test wheels first with rover elevated off table before placing on floor.
+    </p>
+  </div>
+</div>
+
+<script>
+  function filterStage(stage, btn) {
+    document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const groups = document.querySelectorAll('.wire-group');
+    groups.forEach(g => {
+      g.classList.remove('highlighted');
+      if (stage === 'all') {
+        g.classList.remove('dimmed');
+      } else if (g.classList.contains('stage-' + stage)) {
+        g.classList.remove('dimmed');
+      } else {
+        g.classList.add('dimmed');
+      }
+    });
+  }
+
+  function highlightWire(id) {
+    const groups = document.querySelectorAll('.wire-group');
+    groups.forEach(g => {
+      if (g.id === 'wire-' + id) {
+        g.classList.remove('dimmed');
+        g.classList.add('highlighted');
+      } else {
+        g.classList.remove('highlighted');
+        g.classList.add('dimmed');
+      }
+    });
+  }
+
+  function showWireInfo(txt) {
+    document.getElementById('hoverInfo').textContent = '🔍 ' + txt;
+  }
+</script>
+</body>
+</html>

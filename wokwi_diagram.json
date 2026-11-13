@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "author": "AI Recon Rover Team",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 50, "left": 100, "attrs": {} },
+    { "type": "wokwi-hc-sr04", "id": "ultrasonic", "top": -120, "left": 120, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r1", "top": -20, "left": 280, "attrs": { "value": "1000" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 30, "left": 280, "attrs": { "value": "2000" } }
+  ],
+  "connections": [
+    [ "esp:5V", "ultrasonic:VCC", "red", [ "v-20", "h40" ] ],
+    [ "esp:GND.1", "ultrasonic:GND", "black", [ "v-20", "h-20" ] ],
+    [ "esp:32", "ultrasonic:TRIG", "purple", [ "v-40", "h30" ] ],
+    [ "ultrasonic:ECHO", "r1:1", "violet", [ "v20", "h80" ] ],
+    [ "r1:2", "esp:35", "violet", [ "h20", "v80", "h-150" ] ],
+    [ "r1:2", "r2:1", "violet", [ "v10" ] ],
+    [ "r2:2", "esp:GND.1", "black", [ "h20", "v80", "h-170" ] ]
+  ],
+  "dependencies": {}
+}

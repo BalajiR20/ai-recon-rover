@@ -1,0 +1,18 @@
+{
+  "cm_per_s": 30.72,
+  "deg_per_s": 225.0,
+  "deg_per_s_left": 225.0,
+  "deg_per_s_right": 225.0,
+  "speed_pwm": 220,
+  "turn_pwm": 135,
+  "min_pwm": 95,
+  "max_pwm": 240,
+  "left_trim": 0.982,
+  "right_trim": 1.0,
+  "motor_invert_left": false,
+  "motor_invert_right": false,
+  "stop_distance_cm": 24.0,
+  "watchdog_ms": 1500,
+  "calibrated_at": 1794587697.3496225,
+  "notes": "Verified 4xAA Duracell Alkaline 6.0V calibration profile for 2WD TT gear motors and TB6612FNG driver."
+}
